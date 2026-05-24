@@ -58,7 +58,12 @@ body {
 .btn-secundario {
   background: transparent; color: var(--primaria);
   border: 1px solid var(--borda);
+  padding: 12px 20px; border-radius: var(--raio-sm);
+  font-size: 16px; font-weight: 600; cursor: pointer;
+  min-height: 44px; transition: background 0.15s, border-color 0.15s;
 }
+.btn-secundario:hover { background: rgba(172,120,56,0.06); border-color: var(--primaria); }
+.btn-secundario:disabled { opacity: 0.5; cursor: not-allowed; }
 .btn-perigo { background: var(--erro); }
 
 /* Botao "voltar" compacto e discreto (nao ocupa linha cheia feia) */
