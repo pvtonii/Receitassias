@@ -61,6 +61,20 @@ body {
 }
 .btn-perigo { background: var(--erro); }
 
+/* ===== Botoes de ICONE (minimalistas) para edit/delete ===== */
+.btn-icone {
+  width: 40px; height: 40px; min-height: 40px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 50%;                 /* redondo, nada quadrado */
+  border: none; background: transparent;
+  font-size: 18px; line-height: 1; cursor: pointer;
+  color: var(--texto-suave);
+  transition: background 0.15s, color 0.15s;
+}
+.btn-icone:active { transform: scale(0.92); }
+.btn-icone.editar:hover  { background: rgba(172,120,56,0.12); color: var(--primaria); }
+.btn-icone.excluir:hover { background: rgba(163,59,59,0.10);  color: var(--erro); }
+
 .card {
   background: var(--bg-card); border: 1px solid var(--borda);
   border-radius: var(--raio); padding: var(--gap);
