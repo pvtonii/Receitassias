@@ -61,6 +61,15 @@ body {
 }
 .btn-perigo { background: var(--erro); }
 
+/* Botao "voltar" compacto e discreto (nao ocupa linha cheia feia) */
+.btn-voltar {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: transparent; border: none; cursor: pointer;
+  color: var(--texto-suave); font-size: 15px; font-weight: 600;
+  padding: 6px 4px; margin-bottom: 8px;
+}
+.btn-voltar:hover { color: var(--primaria); }
+
 /* ===== Botoes de ICONE (minimalistas) para edit/delete ===== */
 .btn-icone {
   width: 40px; height: 40px; min-height: 40px;
