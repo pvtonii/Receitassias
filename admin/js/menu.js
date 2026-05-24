@@ -79,7 +79,7 @@ const Menu = {
     const itens = await this._itensDaSemana(menuId);
 
     container.innerHTML = `
-      <button class="btn-secundario" style="margin-bottom:14px"
+      <button class="btn-voltar"
               onclick="Menu.render(document.getElementById('app'))">← Back</button>
       <h2 style="margin-bottom:4px">${this._intervalo(semana.semana_inicio, semana.semana_fim)}</h2>
       <p style="color:var(--texto-suave);font-size:14px;margin-bottom:16px">
@@ -133,7 +133,7 @@ const Menu = {
     }
 
     container.innerHTML = `
-      <button class="btn-secundario" style="margin-bottom:14px"
+      <button class="btn-voltar"
               onclick="Menu._abrirSemana('${menuId}')">← Back</button>
       <h2 style="margin-bottom:16px">${diaNome} meal</h2>
 
