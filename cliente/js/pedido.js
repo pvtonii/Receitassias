@@ -25,6 +25,69 @@ const Pedido = {
     await this._carregar();
   },
 
+  /* Pagar VARIOS pedidos de uma vez (a semana toda, vindo da Home) */
+  async _pagarVarios(ids, total) {
+    const container = document.getElementById("app");
+    const pix = REGRAS.PAGAMENTO;
+    total = Number(total);
+
+    container.innerHTML = `
+      <button class="btn-voltar" onclick="abrirSetor('dashboard')">← Back</button>
+      <h2 style="margin-bottom:8px">Payment</h2>
+      <div class="card" style="margin-bottom:16px">
+        <div style="display:flex;justify-content:space-between;font-weight:700;font-size:18px">
+          <span>Total</span><span>$${total.toFixed(0)}</span></div>
+        <div style="font-size:13px;color:var(--texto-suave);margin-top:4px">
+          ${ids.length} meal(s)</div>
+      </div>
+
+      <button class="btn" id="cash-link" style="width:100%;margin-bottom:16px;
+              background:var(--sucesso)">Pay $${total.toFixed(0)} with CashApp</button>
+
+      <p style="font-size:14px;margin-bottom:8px">Or pay with:</p>
+      <div class="card" style="margin-bottom:16px">
+        ${this._linhaPag("Venmo", pix.venmo)}
+        ${this._linhaPag("Zelle", pix.zelle + (pix.zelle_nome ? " · " + pix.zelle_nome : ""))}
+        ${this._linhaPag("Apple Cash", pix.applecash)}
+      </div>
+
+      <p style="font-size:14px;margin-bottom:8px">Which one did you use?</p>
+      <div id="metodos" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
+        ${["CashApp","Venmo","Zelle","Apple Cash"].map(mt => `
+          <button class="metodo-chip" data-mt="${mt}"
+            style="flex:1;min-width:calc(50% - 4px);padding:12px;border-radius:var(--raio-sm);
+                   border:2px solid var(--borda);background:#fff;font-weight:600;
+                   color:var(--texto);cursor:pointer">${mt}</button>`).join("")}
+      </div>
+
+      <div class="erro-msg" id="pay-erro"></div>
+      <button class="btn" id="btn-paguei" style="width:100%">I paid</button>`;
+
+    document.getElementById("cash-link").addEventListener("click", () => {
+      window.open(`https://cash.app/$${REGRAS.PAGAMENTO.cashapp_tag}/${total.toFixed(0)}`, "_blank");
+      this._metodoSel = "CashApp"; this._marcarChip();
+    });
+    this._metodoSel = null;
+    document.querySelectorAll(".metodo-chip").forEach(chip => {
+      chip.addEventListener("click", () => { this._metodoSel = chip.dataset.mt; this._marcarChip(); });
+    });
+    document.getElementById("btn-paguei").addEventListener("click", async () => {
+      if (!this._metodoSel) {
+        document.getElementById("pay-erro").textContent = "Please select which method you used.";
+        return;
+      }
+      const btn = document.getElementById("btn-paguei");
+      btn.disabled = true;
+      // marca TODOS os pedidos da semana como pagos
+      const { error: e } = await sb.from("pedidos")
+        .update({ status_pagamento: "pago", metodo_pagamento: this._metodoSel })
+        .in("id", ids);
+      btn.disabled = false;
+      if (e) { document.getElementById("pay-erro").textContent = "Error: " + e.message; return; }
+      abrirSetor("dashboard");
+    });
+  },
+
   /* Pagar um pedido JA EXISTENTE (chamado pelo "Pay now" da Home) */
   async _pagarExistente(pedidoId) {
     const container = document.getElementById("app");
