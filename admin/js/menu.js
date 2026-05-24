@@ -45,10 +45,10 @@ const Menu = {
     el.innerHTML = this._semanas.map(s => `
       <div class="card" style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
         <span style="flex:1;font-weight:600">${this._intervalo(s.semana_inicio, s.semana_fim)}</span>
-        <button class="btn-secundario" style="padding:8px 12px"
+        <button class="btn-secundario" style="padding:8px 14px"
                 onclick="Menu._abrirSemana('${s.id}')">Open</button>
-        <button class="btn-perigo" style="padding:8px 12px"
-                onclick="Menu._excluirSemana('${s.id}')">Delete</button>
+        <button class="btn-icone excluir" title="Delete week"
+                onclick="event.stopPropagation();Menu._excluirSemana('${s.id}')">&#128465;</button>
       </div>`).join("");
   },
 
