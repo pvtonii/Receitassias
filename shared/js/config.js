@@ -6,8 +6,8 @@
    suba o numero abaixo. Os dois footers leem daqui.
 ============================================ */
 
-const APP_VERSION = "1.0.0";
-const APP_DATA = "2026-05-23";
+const APP_VERSION = "1.0.1";
+const APP_DATA    = "2026-05-23";
 
 /* ============================================
    CONEXAO SUPABASE
@@ -17,10 +17,12 @@ const APP_DATA = "2026-05-23";
    A anon key PODE ficar aqui (protegida por RLS).
    NUNCA use a service_role key no codigo.
 ============================================ */
-const SUPABASE_URL      = "https://ayvlknotctxvcczophjr.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF5dmxrbm90Y3R4dmNjem9waGpyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk1NzM5NTMsImV4cCI6MjA5NTE0OTk1M30.s5vj5yfavscPnMNzzQQHTAe1_DpYLX3pTlYUqaOxjVw";
+const SUPABASE_URL      = "https://SEU-PROJETO.supabase.co";
+const SUPABASE_ANON_KEY = "SUA-ANON-KEY-AQUI";
 
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+/* A lib do CDN cria a global "supabase". Para nao conflitar,
+   criamos NOSSO cliente com o nome "sb" (usado em todo o app). */
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 /* ============================================
    REGRAS DE NEGOCIO
