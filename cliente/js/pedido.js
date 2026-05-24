@@ -47,7 +47,7 @@ const Pedido = {
       <p style="font-size:14px;margin-bottom:8px">Or pay with:</p>
       <div class="card" style="margin-bottom:16px">
         ${this._linhaPag("Venmo", pix.venmo)}
-        ${this._linhaPag("Zelle", pix.zelle + (pix.zelle_nome ? " · " + pix.zelle_nome : ""))}
+        ${this._linhaPag("Zelle", pix.zelle, pix.zelle_nome)}
         ${this._linhaPag("Apple Cash", pix.applecash)}
       </div>
 
@@ -118,7 +118,7 @@ const Pedido = {
       <p style="font-size:14px;margin-bottom:8px">Or pay with:</p>
       <div class="card" style="margin-bottom:16px">
         ${this._linhaPag("Venmo", pix.venmo)}
-        ${this._linhaPag("Zelle", pix.zelle + (pix.zelle_nome ? " · " + pix.zelle_nome : ""))}
+        ${this._linhaPag("Zelle", pix.zelle, pix.zelle_nome)}
         ${this._linhaPag("Apple Cash", pix.applecash)}
       </div>
 
@@ -324,7 +324,7 @@ const Pedido = {
       <p style="font-size:14px;margin-bottom:8px">Or pay with:</p>
       <div class="card" style="margin-bottom:16px">
         ${this._linhaPag("Venmo", pix.venmo)}
-        ${this._linhaPag("Zelle", pix.zelle + (pix.zelle_nome ? " · " + pix.zelle_nome : ""))}
+        ${this._linhaPag("Zelle", pix.zelle, pix.zelle_nome)}
         ${this._linhaPag("Apple Cash", pix.applecash)}
       </div>
 
@@ -378,18 +378,32 @@ const Pedido = {
         this._salvarPedido(escolhidos, total, temAtrasado, "pendente", null));
   },
 
-  _linhaPag(nome, valor) {
+  _linhaPag(nome, valor, subtexto) {
+    const valLimpo = this._esc(valor).replace(/'/g, "");
     return `
-      <div style="display:flex;align-items:center;gap:8px;padding:8px 0;
-                  border-bottom:1px solid var(--borda)">
-        <div style="flex:1"><strong>${nome}:</strong> ${this._esc(valor)}</div>
-        <button class="btn-icone" title="Copy"
-          onclick="Pedido._copiar('${this._esc(valor).replace(/'/g,"")}')">&#128203;</button>
+      <div style="padding:8px 0;border-bottom:1px solid var(--borda)">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="flex:1"><strong>${nome}:</strong> ${this._esc(valor)}</div>
+          <button class="btn-icone copy-btn" title="Copy"
+            onclick="Pedido._copiar('${valLimpo}', this)">&#128203;</button>
+        </div>
+        ${subtexto ? `<div style="font-size:13px;color:var(--texto-suave);margin-top:2px">
+          ${this._esc(subtexto)}</div>` : ""}
       </div>`;
   },
 
-  _copiar(txt) {
-    navigator.clipboard && navigator.clipboard.writeText(txt);
+  _copiar(txt, botao) {
+    if (navigator.clipboard) navigator.clipboard.writeText(txt);
+    // confirmacao visual: troca o icone por um "check" por 1.2s
+    if (botao) {
+      const original = botao.innerHTML;
+      botao.innerHTML = "&#10003;";          // check
+      botao.style.color = "var(--sucesso)";
+      setTimeout(() => {
+        botao.innerHTML = original;
+        botao.style.color = "";
+      }, 1200);
+    }
   },
 
   _marcarChip() {
