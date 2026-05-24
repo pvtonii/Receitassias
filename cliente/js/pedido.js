@@ -168,7 +168,7 @@ const Pedido = {
     const container = document.getElementById("app");
     const pix = REGRAS.PAGAMENTO;
     container.innerHTML = `
-      <button class="btn-secundario" style="margin-bottom:14px"
+      <button class="btn-voltar"
               onclick="Pedido.render(document.getElementById('app'))">← Back</button>
       <h2 style="margin-bottom:8px">Payment</h2>
       <div class="card" style="margin-bottom:16px">
@@ -178,17 +178,29 @@ const Pedido = {
           ${escolhidos.length} meal(s)</div>
       </div>
 
-      <p style="font-size:14px;margin-bottom:8px">Pay with one of these:</p>
-      <div class="card" style="margin-bottom:16px;line-height:2">
-        <div><strong>CashApp:</strong> ${this._esc(pix.cashapp)}</div>
-        <div><strong>Venmo:</strong> ${this._esc(pix.venmo)}</div>
-        <div><strong>Zelle:</strong> ${this._esc(pix.zelle)}</div>
-        <div><strong>Apple Cash:</strong> ${this._esc(pix.applecash)}</div>
+      <button class="btn" id="cash-link" style="width:100%;margin-bottom:16px;
+              background:var(--sucesso)">
+        Pay $${total.toFixed(0)} with CashApp</button>
+
+      <p style="font-size:14px;margin-bottom:8px">Or pay with:</p>
+      <div class="card" style="margin-bottom:16px">
+        ${this._linhaPag("Venmo", pix.venmo)}
+        ${this._linhaPag("Zelle", pix.zelle + (pix.zelle_nome ? " · " + pix.zelle_nome : ""))}
+        ${this._linhaPag("Apple Cash", pix.applecash)}
       </div>
 
       ${temAtrasado ? `<div class="card" style="border-color:var(--erro);color:var(--erro);
         font-size:13px;margin-bottom:16px">⚠️ Your order includes days past the usual cutoff.
         We'll confirm if we can still make them.</div>` : ""}
+
+      <p style="font-size:14px;margin-bottom:8px">Which one did you use?</p>
+      <div id="metodos" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
+        ${["CashApp","Venmo","Zelle","Apple Cash"].map(mt => `
+          <button class="metodo-chip" data-mt="${mt}"
+            style="flex:1;min-width:calc(50% - 4px);padding:12px;border-radius:var(--raio-sm);
+                   border:2px solid var(--borda);background:#fff;font-weight:600;
+                   color:var(--texto);cursor:pointer">${mt}</button>`).join("")}
+      </div>
 
       <div class="erro-msg" id="pay-erro"></div>
       <button class="btn" id="btn-paguei" style="width:100%;margin-bottom:10px">
@@ -196,13 +208,61 @@ const Pedido = {
       <button class="btn-secundario" id="btn-depois" style="width:100%">
         I'll pay later — place order</button>`;
 
+    // botao CashApp com link e valor (cash.app/$tag/valor)
+    document.getElementById("cash-link").addEventListener("click", () => {
+      const tag = REGRAS.PAGAMENTO.cashapp_tag;
+      window.open(`https://cash.app/$${tag}/${total.toFixed(0)}`, "_blank");
+      this._metodoSel = "CashApp";
+      this._marcarChip();
+    });
+
+    // chips de metodo (selecao unica)
+    this._metodoSel = null;
+    document.querySelectorAll(".metodo-chip").forEach(chip => {
+      chip.addEventListener("click", () => {
+        this._metodoSel = chip.dataset.mt;
+        this._marcarChip();
+      });
+    });
+
     document.getElementById("btn-paguei")
-      .addEventListener("click", () => this._salvarPedido(escolhidos, total, temAtrasado, "pago"));
+      .addEventListener("click", () => {
+        if (!this._metodoSel) {
+          document.getElementById("pay-erro").textContent =
+            "Please select which method you used.";
+          return;
+        }
+        this._salvarPedido(escolhidos, total, temAtrasado, "pago", this._metodoSel);
+      });
     document.getElementById("btn-depois")
-      .addEventListener("click", () => this._salvarPedido(escolhidos, total, temAtrasado, "pendente"));
+      .addEventListener("click", () =>
+        this._salvarPedido(escolhidos, total, temAtrasado, "pendente", null));
   },
 
-  async _salvarPedido(escolhidos, total, temAtrasado, statusPag) {
+  _linhaPag(nome, valor) {
+    return `
+      <div style="display:flex;align-items:center;gap:8px;padding:8px 0;
+                  border-bottom:1px solid var(--borda)">
+        <div style="flex:1"><strong>${nome}:</strong> ${this._esc(valor)}</div>
+        <button class="btn-icone" title="Copy"
+          onclick="Pedido._copiar('${this._esc(valor).replace(/'/g,"")}')">&#128203;</button>
+      </div>`;
+  },
+
+  _copiar(txt) {
+    navigator.clipboard && navigator.clipboard.writeText(txt);
+  },
+
+  _marcarChip() {
+    document.querySelectorAll(".metodo-chip").forEach(c => {
+      const ativo = c.dataset.mt === this._metodoSel;
+      c.style.borderColor = ativo ? "var(--primaria)" : "var(--borda)";
+      c.style.background = ativo ? "rgba(172,120,56,.10)" : "#fff";
+      c.style.color = ativo ? "var(--primaria)" : "var(--texto)";
+    });
+  },
+
+  async _salvarPedido(escolhidos, total, temAtrasado, statusPag, metodo) {
     const erro = document.getElementById("pay-erro");
     const btn = document.getElementById("btn-paguei");
     const btn2 = document.getElementById("btn-depois");
@@ -221,6 +281,7 @@ const Pedido = {
               : (escolhidos.length === REGRAS.DIAS_SEMANA && this._dias.length === REGRAS.DIAS_SEMANA
                  ? REGRAS.PRECO_SEMANA : REGRAS.PRECO_AVULSO)),
         status_pagamento: statusPag,       // "pago" (cliente marcou) ou "pendente"
+        metodo_pagamento: metodo,          // CashApp / Venmo / Zelle / Apple Cash / null
         precisa_aprovacao: d._atrasado,
         status_aprovacao: d._atrasado ? "pendente" : null
       }).select().single();
