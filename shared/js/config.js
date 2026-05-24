@@ -6,7 +6,7 @@
    suba o numero abaixo. Os dois footers leem daqui.
 ============================================ */
 
-const APP_VERSION = "1.7.0";
+const APP_VERSION = "1.8.0";
 const APP_DATA    = "2026-05-24";
 
 /* ============================================
@@ -35,10 +35,12 @@ const REGRAS = {
   PRECO_ESPECIAL: 15,
   DIAS_SEMANA: 5,
   PAGAMENTO: {
-    cashapp:   "$SeuCashApp",
-    venmo:     "@SeuVenmo",
-    zelle:     "seu-telefone-ou-email",
-    applecash: "seu-telefone"
+    cashapp:        "$TassiaOliveira1",      // exibido pro cliente
+    cashapp_tag:    "TassiaOliveira1",        // usado no link cash.app/$tag/valor
+    venmo:          "@SeuVenmo",              // troque quando ativar
+    zelle:          "(803) 457-6473",
+    zelle_nome:     "Tassia Colombo de Oliveira S",
+    applecash:      "(803) 457-6473"          // mesmo telefone do Zelle
   }
 };
 
