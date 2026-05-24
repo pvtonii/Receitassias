@@ -62,22 +62,62 @@ const Dashboard = {
       return;
     }
 
-    // separa em aberto (pendente, nao cancelado) vs resto
+    // nao-pagos (pendente, nao cancelado) agrupados POR SEMANA
     const abertos = data.filter(p => p.status_pagamento === "pendente" && !p.cancelado);
     const resto   = data.filter(p => !(p.status_pagamento === "pendente" && !p.cancelado));
 
     let html = "";
+
     if (abertos.length) {
+      // agrupa por semana (segunda-feira da semana de cada dia_consumo)
+      const semanas = {};
+      for (const p of abertos) {
+        const chave = this._segundaDaSemana(p.dia_consumo);
+        (semanas[chave] = semanas[chave] || []).push(p);
+      }
+      const chavesOrdenadas = Object.keys(semanas).sort();
+
       html += `<div style="font-size:12px;font-weight:700;text-transform:uppercase;
                  letter-spacing:.5px;color:var(--erro);margin:4px 0 8px">To pay</div>`;
-      html += abertos.map(p => this._cardPedido(p, true)).join("");
+      for (const ch of chavesOrdenadas) {
+        html += this._cardSemana(ch, semanas[ch]);
+      }
     }
+
     if (resto.length) {
       html += `<div style="font-size:12px;font-weight:700;text-transform:uppercase;
                  letter-spacing:.5px;color:var(--texto-suave);margin:16px 0 8px">History</div>`;
       html += resto.map(p => this._cardPedido(p, false)).join("");
     }
     el.innerHTML = html;
+  },
+
+  /* Card de uma SEMANA com pedidos a pagar: total + 1 Pay now */
+  _cardSemana(segundaIso, pedidos) {
+    const total = pedidos.reduce((s, p) => s + Number(p.total), 0);
+    const qtd = pedidos.length;
+    const ids = pedidos.map(p => p.id).join(",");
+    // lista os dias/marmitas dessa semana
+    const linhas = pedidos
+      .sort((a,b) => a.dia_consumo.localeCompare(b.dia_consumo))
+      .map(p => {
+        const nome = (p.pedido_itens && p.pedido_itens[0] && p.pedido_itens[0].menu_itens)
+          ? p.pedido_itens[0].menu_itens.nome : "Meal";
+        return `<div style="font-size:13px;color:var(--texto-suave)">
+                  ${this._diaCurto(p.dia_consumo)} · ${this._esc(nome)} · $${Number(p.total).toFixed(0)}</div>`;
+      }).join("");
+
+    return `
+      <div class="card" style="margin-bottom:10px;border:2px solid var(--primaria)">
+        <div style="font-weight:700;margin-bottom:6px">
+          Week of ${this._diaCurto(segundaIso)} · ${qtd} meal(s)</div>
+        ${linhas}
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px">
+          <div style="font-weight:700;font-size:18px">$${total.toFixed(0)}</div>
+          <button class="btn" style="padding:10px 18px"
+            onclick="Dashboard._pagarSemana('${ids}', ${total})">Pay now</button>
+        </div>
+      </div>`;
   },
 
   _cardPedido(p, aberto) {
@@ -93,8 +133,6 @@ const Dashboard = {
             <div style="font-size:13px;color:var(--texto-suave)">${dia} · $${Number(p.total).toFixed(0)}</div>
             <div style="margin-top:4px">${status}</div>
           </div>
-          ${aberto ? `<button class="btn" style="padding:10px 16px"
-            onclick="Dashboard._pagar('${p.id}')">Pay now</button>` : ""}
         </div>
       </div>`;
   },
@@ -109,13 +147,27 @@ const Dashboard = {
     return `<span style="font-size:12px;color:var(--erro);font-weight:600">Not paid yet</span>`;
   },
 
-  /* botao Pay now: leva pra tela de pagamento de UM pedido ja existente */
-  _pagar(pedidoId) {
-    if (typeof Pedido !== "undefined" && Pedido._pagarExistente) {
-      Pedido._pagarExistente(pedidoId);
+  /* Pay now da semana: paga TODOS os pedidos daquela semana de uma vez */
+  _pagarSemana(idsStr, total) {
+    const ids = idsStr.split(",");
+    if (typeof Pedido !== "undefined" && Pedido._pagarVarios) {
+      Pedido._pagarVarios(ids, total);
     } else {
       abrirSetor("pedido");
     }
+  },
+
+  /* segunda-feira (Monday) da semana de uma data ISO */
+  _segundaDaSemana(iso) {
+    const d = new Date(iso + "T00:00:00");
+    const diaSemana = (d.getDay() + 6) % 7;  // 0 = Monday
+    d.setDate(d.getDate() - diaSemana);
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+  },
+  _diaCurto(iso) {
+    const d = new Date(iso + "T00:00:00");
+    const m = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    return `${m[d.getMonth()]} ${d.getDate()}`;
   },
 
   /* --- datas (fuso Central) --- */
