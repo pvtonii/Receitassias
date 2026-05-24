@@ -62,10 +62,10 @@ const Ingredientes = {
     return `
       <div class="card" style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
         <span style="flex:1;font-weight:600">${this._esc(it.nome)}</span>
-        <button class="btn-secundario" style="padding:8px 12px"
-                onclick="Ingredientes._abrirForm('${it.id}')">Edit</button>
-        <button class="btn-perigo" style="padding:8px 12px"
-                onclick="Ingredientes._excluir('${it.id}')">Delete</button>
+        <button class="btn-icone editar" title="Edit"
+                onclick="Ingredientes._abrirForm('${it.id}')">&#9998;</button>
+        <button class="btn-icone excluir" title="Delete"
+                onclick="Ingredientes._excluir('${it.id}')">&#128465;</button>
       </div>`;
   },
 
