@@ -5,7 +5,6 @@
 
 const SETORES = [
   { id: "dashboard", rotulo: "Home", ico: "🏠", modulo: () => Dashboard },
-  { id: "menu",      rotulo: "Menu",   ico: "🍱", modulo: () => Menu },
   { id: "pedido",    rotulo: "Order",  ico: "🛒", modulo: () => Pedido },
   { id: "profile",   rotulo: "Profile", ico: "👤", modulo: () => Profile },
 ];
