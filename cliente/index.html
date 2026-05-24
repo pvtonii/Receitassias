@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<!-- ============================================
+     RECEITASSIAS - APP CLIENTE
+     VERSAO: 1.0.0
+     DATA: 2026-05-23
+     MUDANCA: estrutura inicial + login/cadastro
+     ============================================
+     >> ATUALIZAR VERSAO (sempre que editar algo):
+        1. ../shared/js/config.js : APP_VERSION e APP_DATA
+        2. este comentario (VERSAO / DATA / MUDANCA)
+        O footer atualiza sozinho.
+============================================ -->
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Receitassias</title>
+  <link rel="stylesheet" href="../shared/css/theme.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <header id="topo"></header>
+  <main id="app"></main>
+  <footer class="app-footer">
+    Receitassias &middot; v<span id="app-version"></span> &middot; <span id="app-data"></span>
+  </footer>
+
+  <!-- base compartilhada -->
+  <script src="../shared/js/config.js"></script>
+  <script src="../shared/js/auth.js"></script>
+  <!-- setores do cliente -->
+  <script src="js/dashboard.js"></script>
+  <script src="js/menu.js"></script>
+  <script src="js/pedido.js"></script>
+  <script src="js/profile.js"></script>
+  <!-- roteador -->
+  <script src="js/app.js"></script>
+
+  <script>aplicarVersaoNoFooter();</script>
+</body>
+</html>
