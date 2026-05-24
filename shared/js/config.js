@@ -17,8 +17,8 @@ const APP_DATA = "2026-05-23";
    A anon key PODE ficar aqui (protegida por RLS).
    NUNCA use a service_role key no codigo.
 ============================================ */
-const SUPABASE_URL      = "https://SEU-PROJETO.supabase.co";
-const SUPABASE_ANON_KEY = "SUA-ANON-KEY-AQUI";
+const SUPABASE_URL      = "https://ayvlknotctxvcczophjr.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF5dmxrbm90Y3R4dmNjem9waGpyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk1NzM5NTMsImV4cCI6MjA5NTE0OTk1M30.s5vj5yfavscPnMNzzQQHTAe1_DpYLX3pTlYUqaOxjVw";
 
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
