@@ -61,18 +61,19 @@ const Pedido = {
   _desenhar() {
     const el = document.getElementById("ord-conteudo");
     const m = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+    const { semanaCheia } = this._calcular();
 
     el.innerHTML = `
       <div style="font-weight:600;margin-bottom:12px">
         ${this._intervalo(this._semana.semana_inicio, this._semana.semana_fim)}</div>
-      ${this._dias.map(d => this._cardDia(d, m)).join("")}
+      ${this._dias.map(d => this._cardDia(d, m, semanaCheia)).join("")}
       <div id="ord-resumo" class="card" style="position:sticky;bottom:84px;
            border:2px solid var(--primaria)"></div>`;
 
     this._atualizarResumo();
   },
 
-  _cardDia(d, m) {
+  _cardDia(d, m, semanaCheia) {
     const dt = new Date(d.dia + "T00:00:00");
     const nomeDia = m[(dt.getDay() + 6) % 7]; // getDay: 0=Dom -> ajusta p/ Mon=0
     const sel = this._sel.has(d.id);
@@ -93,7 +94,13 @@ const Pedido = {
             ${d._atrasado ? `<div style="color:var(--erro);font-size:12px;margin-top:4px">
               ⚠️ Past cutoff — needs confirmation</div>` : ""}
           </div>
-          <div style="font-weight:700">$${Number(d.preco).toFixed(0)}</div>
+          <div style="font-weight:700;text-align:right">
+            ${(semanaCheia && !d.especial) ? `
+              <span style="text-decoration:line-through;color:var(--texto-suave);
+                    font-weight:400;font-size:13px">$${REGRAS.PRECO_AVULSO}</span>
+              <span style="color:var(--sucesso)">$${REGRAS.PRECO_SEMANA}</span>`
+            : `$${Number(d.preco).toFixed(0)}`}
+          </div>
         </div>
       </div>`;
   },
@@ -131,12 +138,21 @@ const Pedido = {
       return;
     }
     const temAtrasado = escolhidos.some(d => d._atrasado);
+    // economia = quanto pagaria tudo avulso - quanto paga agora
+    let economia = 0;
+    if (semanaCheia) {
+      const avulso = escolhidos.reduce((s,d) =>
+        s + (d.especial ? REGRAS.PRECO_ESPECIAL : REGRAS.PRECO_AVULSO), 0);
+      economia = avulso - total;
+    }
     box.innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:center">
         <div>
           <div style="font-weight:700;font-size:18px">$${total.toFixed(0)}</div>
           <div style="font-size:12px;color:var(--texto-suave)">
-            ${escolhidos.length} day(s)${semanaCheia ? " · full week price 🎉" : ""}</div>
+            ${escolhidos.length} day(s)${semanaCheia ? " · full week 🎉" : ""}</div>
+          ${economia > 0 ? `<div style="font-size:12px;color:var(--sucesso);font-weight:600">
+            You save $${economia}!</div>` : ""}
         </div>
         <button class="btn" onclick="Pedido._confirmar()">Continue</button>
       </div>
@@ -162,7 +178,7 @@ const Pedido = {
           ${escolhidos.length} meal(s)</div>
       </div>
 
-      <p style="font-size:14px;margin-bottom:8px">Pay with one of these, then tap "I paid":</p>
+      <p style="font-size:14px;margin-bottom:8px">Pay with one of these:</p>
       <div class="card" style="margin-bottom:16px;line-height:2">
         <div><strong>CashApp:</strong> ${this._esc(pix.cashapp)}</div>
         <div><strong>Venmo:</strong> ${this._esc(pix.venmo)}</div>
@@ -175,19 +191,25 @@ const Pedido = {
         We'll confirm if we can still make them.</div>` : ""}
 
       <div class="erro-msg" id="pay-erro"></div>
-      <button class="btn" id="btn-paguei" style="width:100%">I paid — place order</button>`;
+      <button class="btn" id="btn-paguei" style="width:100%;margin-bottom:10px">
+        I paid — place order</button>
+      <button class="btn-secundario" id="btn-depois" style="width:100%">
+        I'll pay later — place order</button>`;
 
     document.getElementById("btn-paguei")
-      .addEventListener("click", () => this._salvarPedido(escolhidos, total, temAtrasado));
+      .addEventListener("click", () => this._salvarPedido(escolhidos, total, temAtrasado, "pago"));
+    document.getElementById("btn-depois")
+      .addEventListener("click", () => this._salvarPedido(escolhidos, total, temAtrasado, "pendente"));
   },
 
-  async _salvarPedido(escolhidos, total, temAtrasado) {
+  async _salvarPedido(escolhidos, total, temAtrasado, statusPag) {
     const erro = document.getElementById("pay-erro");
     const btn = document.getElementById("btn-paguei");
-    btn.disabled = true; erro.textContent = "";
+    const btn2 = document.getElementById("btn-depois");
+    btn.disabled = true; if (btn2) btn2.disabled = true; erro.textContent = "";
 
     const cliente = Auth._cliente;
-    if (!cliente) { erro.textContent = "Session error. Please log in again."; btn.disabled = false; return; }
+    if (!cliente) { erro.textContent = "Session error. Please log in again."; btn.disabled = false; if (btn2) btn2.disabled = false; return; }
 
     // cria um pedido por dia de consumo (facilita a producao por dia)
     let falhou = false;
@@ -198,7 +220,7 @@ const Pedido = {
         total: Number(d.especial ? REGRAS.PRECO_ESPECIAL
               : (escolhidos.length === REGRAS.DIAS_SEMANA && this._dias.length === REGRAS.DIAS_SEMANA
                  ? REGRAS.PRECO_SEMANA : REGRAS.PRECO_AVULSO)),
-        status_pagamento: "pago",          // cliente marcou que pagou (admin confirma)
+        status_pagamento: statusPag,       // "pago" (cliente marcou) ou "pendente"
         precisa_aprovacao: d._atrasado,
         status_aprovacao: d._atrasado ? "pendente" : null
       }).select().single();
@@ -209,7 +231,7 @@ const Pedido = {
       });
     }
 
-    btn.disabled = false;
+    btn.disabled = false; if (btn2) btn2.disabled = false;
     if (falhou) { erro.textContent = "Error placing order. Please try again."; return; }
 
     document.getElementById("app").innerHTML = `
