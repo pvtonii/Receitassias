@@ -43,11 +43,13 @@ const Menu = {
     }
 
     el.innerHTML = this._semanas.map(s => `
-      <div class="card" style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+      <div class="card" style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
         <span style="flex:1;font-weight:600">${this._intervalo(s.semana_inicio, s.semana_fim)}</span>
-        <button class="btn-secundario" style="padding:8px 14px"
+        <button class="btn-secundario"
+                style="padding:0 16px;height:40px;min-height:0;flex-shrink:0"
                 onclick="Menu._abrirSemana('${s.id}')">Open</button>
         <button class="btn-icone excluir" title="Delete week"
+                style="flex-shrink:0"
                 onclick="event.stopPropagation();Menu._excluirSemana('${s.id}')">&#128465;</button>
       </div>`).join("");
   },
@@ -99,18 +101,23 @@ const Menu = {
     const temItem = !!item;
     return `
       <div class="card" style="margin-bottom:12px">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:${temItem ? "8px" : "0"}">
-          <strong style="flex:1">${diaNome} · ${this._diaMes(dataDia)}</strong>
-          ${temItem && item.especial ? '<span class="badge-especial">SPECIAL</span>' : ""}
-          <button class="btn-secundario" style="padding:8px 12px"
-            onclick="Menu._editarDia('${menuId}','${iso}','${diaNome}', ${item ? `'${item.id}'` : "null"})">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+              <strong>${diaNome} · ${this._diaMes(dataDia)}</strong>
+              ${temItem && item.especial ? '<span class="badge-especial">SPECIAL</span>' : ""}
+            </div>
+            ${temItem ? `
+              <div style="font-weight:600;margin-top:4px">${this._esc(item.nome)}</div>
+              <div style="color:var(--texto-suave);font-size:13px;margin-top:2px">
+                $${Number(item.preco).toFixed(0)}${item._ings && item._ings.length ? " · " + item._ings.map(x => this._esc(x)).join(", ") : ""}
+              </div>` : ""}
+          </div>
+          <button class="btn-secundario"
+                  style="padding:0 14px;height:40px;min-height:0;flex-shrink:0"
+                  onclick="Menu._editarDia('${menuId}','${iso}','${diaNome}', ${item ? `'${item.id}'` : "null"})">
             ${temItem ? "Edit" : "+ Add"}</button>
         </div>
-        ${temItem ? `
-          <div style="font-weight:600">${this._esc(item.nome)}</div>
-          <div style="color:var(--texto-suave);font-size:13px;margin-top:2px">
-            $${Number(item.preco).toFixed(0)}${item._ings && item._ings.length ? " · " + item._ings.map(x => this._esc(x)).join(", ") : ""}
-          </div>` : ""}
       </div>`;
   },
 
