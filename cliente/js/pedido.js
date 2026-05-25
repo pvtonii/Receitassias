@@ -190,7 +190,8 @@ const Pedido = {
       const { data: links } = await sb.from("menu_item_ingredientes")
         .select("ingredientes(nome)").eq("menu_item_id", it.id);
       it._ings = (links || []).map(l => l.ingredientes && l.ingredientes.nome).filter(Boolean);
-      it._atrasado = this._passouCorte(it.dia);
+      it._passado  = it.dia < hojeIso;          // dia ja aconteceu: bloqueia selecao
+      it._atrasado = !it._passado && this._passouCorte(it.dia);
       this._dias.push(it);
     }
 
@@ -252,8 +253,32 @@ const Pedido = {
 
   _cardDia(d, m, semanaCheia) {
     const dt = new Date(d.dia + "T00:00:00");
-    const nomeDia = m[(dt.getDay() + 6) % 7]; // getDay: 0=Dom -> ajusta p/ Mon=0
+    const nomeDia = m[(dt.getDay() + 6) % 7];
     const sel = this._sel.has(d.id);
+
+    if (d._passado) {
+      return `
+        <div class="card" style="margin-bottom:10px;opacity:0.38;cursor:not-allowed;
+             pointer-events:none">
+          <div style="display:flex;align-items:center;gap:8px">
+            <input type="checkbox" disabled
+                   style="width:22px;height:22px;pointer-events:none">
+            <div style="flex:1">
+              <div style="font-weight:600">${nomeDia} · ${this._diaMes(dt)}
+                ${d.especial ? '<span class="badge-especial" style="margin-left:6px">SPECIAL</span>' : ""}
+              </div>
+              <div style="font-size:14px">${this._esc(d.nome)}</div>
+              ${d._ings.length ? `<div style="color:var(--texto-suave);font-size:12px;margin-top:2px">
+                ${d._ings.map(x => this._esc(x)).join(", ")}</div>` : ""}
+              <div style="font-size:12px;margin-top:4px;color:var(--texto-suave)">
+                Not available</div>
+            </div>
+            <div style="font-weight:700;text-align:right;color:var(--texto-suave)">
+              $${Number(d.preco).toFixed(0)}</div>
+          </div>
+        </div>`;
+    }
+
     return `
       <div class="card" style="margin-bottom:10px;
            ${sel ? "border:2px solid var(--primaria)" : ""}"
@@ -283,6 +308,8 @@ const Pedido = {
   },
 
   _toggle(id) {
+    const dia = this._dias.find(d => d.id == id);
+    if (!dia || dia._passado) return;
     if (this._sel.has(id)) this._sel.delete(id); else this._sel.add(id);
     this._desenhar();
   },
@@ -290,8 +317,9 @@ const Pedido = {
   /* Calcula o total aplicando a regra do desconto de semana */
   _calcular() {
     const escolhidos = this._dias.filter(d => this._sel.has(d.id));
+    const disponiveis = this._dias.filter(d => !d._passado);
     const semanaCheia = escolhidos.length === REGRAS.DIAS_SEMANA
-      && this._dias.length === REGRAS.DIAS_SEMANA;
+      && disponiveis.length === REGRAS.DIAS_SEMANA;
 
     let total = 0;
     for (const d of escolhidos) {
@@ -469,7 +497,7 @@ const Pedido = {
         cliente_id: cliente.id,
         dia_consumo: d.dia,
         total: Number(d.especial ? REGRAS.PRECO_ESPECIAL
-              : (escolhidos.length === REGRAS.DIAS_SEMANA && this._dias.length === REGRAS.DIAS_SEMANA
+              : (escolhidos.length === REGRAS.DIAS_SEMANA && this._dias.filter(x => !x._passado).length === REGRAS.DIAS_SEMANA
                  ? REGRAS.PRECO_SEMANA : REGRAS.PRECO_AVULSO)),
         status_pagamento: statusPag,       // "pago" (cliente marcou) ou "pendente"
         metodo_pagamento: metodo,          // CashApp / Venmo / Zelle / Apple Cash / null
