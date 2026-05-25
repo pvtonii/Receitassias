@@ -26,15 +26,30 @@ const Profile = {
       <div id="p-ok" style="color:var(--sucesso);font-size:14px;min-height:18px"></div>
       <button class="btn" id="p-salvar" style="width:100%;margin-bottom:22px">Save changes</button>
 
-      <h3 style="margin-bottom:10px">Change password</h3>
-      <label>New password (min. 6 characters)</label>
-      <input class="campo" id="p-senha" type="password" placeholder="new password">
-      <div class="erro-msg" id="p-senha-erro"></div>
-      <div id="p-senha-ok" style="color:var(--sucesso);font-size:14px;min-height:18px"></div>
-      <button class="btn-secundario" id="p-trocar-senha" style="width:100%">Update password</button>`;
+      <h3 style="margin-bottom:10px">
+        <button id="p-toggle-senha" class="btn-secundario" style="width:100%;text-align:left">
+          Change password ▾</button>
+      </h3>
+      <div id="p-senha-area" style="display:none">
+        <label>New password (min. 6 characters)</label>
+        <input class="campo" id="p-senha" type="password" placeholder="new password">
+        <div class="erro-msg" id="p-senha-erro"></div>
+        <div id="p-senha-ok" style="color:var(--sucesso);font-size:14px;min-height:18px"></div>
+        <button class="btn-secundario" id="p-trocar-senha" style="width:100%">Update password</button>
+      </div>`;
 
     document.getElementById("p-salvar")
       .addEventListener("click", () => this._salvar());
+
+    // expandir/recolher a area de senha
+    document.getElementById("p-toggle-senha").addEventListener("click", () => {
+      const area = document.getElementById("p-senha-area");
+      const aberto = area.style.display !== "none";
+      area.style.display = aberto ? "none" : "block";
+      document.getElementById("p-toggle-senha").innerHTML =
+        aberto ? "Change password ▾" : "Change password ▴";
+    });
+
     document.getElementById("p-trocar-senha")
       .addEventListener("click", () => this._trocarSenha());
   },
