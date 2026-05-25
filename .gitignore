@@ -1,0 +1,4 @@
+# nada sensivel aqui (a anon key e publica), mas evite subir lixo:
+.DS_Store
+node_modules/
+*.log
