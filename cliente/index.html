@@ -34,17 +34,23 @@
     Receitassias &middot; v<span id="app-version"></span> &middot; <span id="app-data"></span>
   </footer>
 
-  <!-- config carrega primeiro (tem APP_VERSION + o carregador) -->
-  <script src="../shared/js/config.js"></script>
   <script>
-    // carrega o resto JA com ?v=APP_VERSION (force update automatico)
-    carregarScripts([
-      "../shared/js/auth.js",
-      "js/dashboard.js",
-      "js/pedido.js",
-      "js/profile.js",
-      "js/app.js"        // roteador por ultimo (usa os outros)
-    ], aplicarVersaoNoFooter);
+    // Passa o ?v= da URL pro config.js tambem, forcando cache miss apos forcarAtualizacao
+    (function () {
+      var urlV = new URLSearchParams(window.location.search).get("v");
+      var s = document.createElement("script");
+      s.src = "../shared/js/config.js" + (urlV ? "?v=" + urlV : "");
+      s.onload = function () {
+        carregarScripts([
+          "../shared/js/auth.js",
+          "js/dashboard.js",
+          "js/pedido.js",
+          "js/profile.js",
+          "js/app.js"
+        ], aplicarVersaoNoFooter);
+      };
+      document.body.appendChild(s);
+    })();
   </script>
 </body>
 </html>
