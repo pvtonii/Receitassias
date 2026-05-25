@@ -45,6 +45,7 @@ body {
   color: var(--texto);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  min-height: 100vh;   /* evita a tabbar "fixed" subir quando o conteudo ainda esta vazio */
 }
 
 .btn {
