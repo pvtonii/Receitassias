@@ -174,7 +174,13 @@ label { font-size: 14px; font-weight: 600; color: var(--texto-suave); }
   font-size: 12px;
 }
 
-/* Em telas largas (desktop), a tabbar continua funcionando e fica centralizada */
+/* Em telas largas (desktop): centraliza a barra SEM quebrar o position fixed.
+   (margin:auto nao funciona com fixed; usa-se left:50% + translateX) */
 @media (min-width: 721px) {
-  .tabbar { max-width: 720px; margin: 0 auto; border-radius: 14px 14px 0 0; }
+  .tabbar {
+    left: 50%; right: auto;
+    transform: translateX(-50%);
+    width: 100%; max-width: 720px;
+    border-radius: 14px 14px 0 0;
+  }
 }
