@@ -6,7 +6,7 @@
    suba o numero abaixo. Os dois footers leem daqui.
 ============================================ */
 
-const APP_VERSION = "1.14.1";
+const APP_VERSION = "1.15.0";
 const APP_DATA    = "2026-05-24";
 
 /* ============================================
@@ -61,6 +61,22 @@ function aplicarVersaoNoFooter() {
   const d = document.getElementById("app-data");
   if (v) v.textContent = APP_VERSION;
   if (d) d.textContent = APP_DATA;
+}
+
+/* Carrega uma lista de scripts EM ORDEM, cada um com ?v=APP_VERSION.
+   Isso forca o navegador a baixar a versao nova quando APP_VERSION muda
+   (cache-busting automatico). Chamado pelo index.html. */
+function carregarScripts(lista, aoTerminar) {
+  let i = 0;
+  function proximo() {
+    if (i >= lista.length) { if (aoTerminar) aoTerminar(); return; }
+    const s = document.createElement("script");
+    s.src = lista[i] + "?v=" + APP_VERSION;
+    s.onload = () => { i++; proximo(); };
+    s.onerror = () => { console.error("Falha ao carregar:", s.src); i++; proximo(); };
+    document.body.appendChild(s);
+  }
+  proximo();
 }
 
 /* Forca recarregar o app ignorando o cache (botao de refresh no header).
