@@ -169,14 +169,29 @@ const Auth = {
       return;
     }
 
-    // 2) cria a linha em 'clientes' ligada ao id do Auth
+    // 2) cria/conecta a linha em 'clientes'
     const so_numeros = telefone.replace(/\D/g, "");
-    const { error: e2 } = await sb.from("clientes").insert({
-      id: data.user.id,
-      telefone: so_numeros,
-      nome: nome,
-      is_admin: false
-    });
+
+    // Se o admin ja criou um registro manual com este telefone (id diferente),
+    // conecta esse registro ao login novo em vez de criar outro (evita duplicata).
+    const { data: existente } = await sb.from("clientes")
+      .select("id").eq("telefone", so_numeros).maybeSingle();
+
+    let e2 = null;
+    if (existente) {
+      // muda o id do registro existente para o id do Auth recem-criado
+      const r = await sb.from("clientes")
+        .update({ id: data.user.id, nome: nome }).eq("telefone", so_numeros);
+      e2 = r.error;
+    } else {
+      const r = await sb.from("clientes").insert({
+        id: data.user.id,
+        telefone: so_numeros,
+        nome: nome,
+        is_admin: false
+      });
+      e2 = r.error;
+    }
     btn.disabled = false;
     if (e2) { erro.textContent = "Error saving profile: " + e2.message; return; }
 
