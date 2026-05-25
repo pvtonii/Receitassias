@@ -190,8 +190,8 @@ const Pedido = {
       const { data: links } = await sb.from("menu_item_ingredientes")
         .select("ingredientes(nome)").eq("menu_item_id", it.id);
       it._ings = (links || []).map(l => l.ingredientes && l.ingredientes.nome).filter(Boolean);
-      it._passado  = it.dia < hojeIso;          // dia ja aconteceu: bloqueia selecao
-      it._atrasado = !it._passado && this._passouCorte(it.dia);
+      it._passado  = this._passouBloqueio(it.dia);           // 17:30+ → bloqueia
+      it._atrasado = !it._passado && this._passouCorte(it.dia); // 17:00-17:30 → aviso
       this._dias.push(it);
     }
 
@@ -537,11 +537,18 @@ const Pedido = {
     const a = this._agoraCentral();
     return `${a.getFullYear()}-${String(a.getMonth()+1).padStart(2,"0")}-${String(a.getDate()).padStart(2,"0")}`;
   },
-  // passou do corte (15:30 do dia anterior ao consumo)?
+  // passou do corte suave (17:00 do dia anterior) → mostra aviso
   _passouCorte(diaIso) {
     const limite = new Date(diaIso + "T00:00:00");
     limite.setDate(limite.getDate() - 1);
     limite.setHours(REGRAS.HORA_CORTE, REGRAS.MIN_CORTE, 0, 0);
+    return this._agoraCentral() > limite;
+  },
+  // passou do corte duro (17:30 do dia anterior) → bloqueia selecao
+  _passouBloqueio(diaIso) {
+    const limite = new Date(diaIso + "T00:00:00");
+    limite.setDate(limite.getDate() - 1);
+    limite.setHours(REGRAS.HORA_BLOQUEIO, REGRAS.MIN_BLOQUEIO, 0, 0);
     return this._agoraCentral() > limite;
   },
 

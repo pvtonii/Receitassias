@@ -6,7 +6,7 @@
    suba o numero abaixo. Os dois footers leem daqui.
 ============================================ */
 
-const APP_VERSION = "1.16.0";
+const APP_VERSION = "1.17.0";
 const APP_DATA    = "2026-05-25";
 
 /* ============================================
@@ -28,8 +28,10 @@ const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
    REGRAS DE NEGOCIO
 ============================================ */
 const REGRAS = {
-  HORA_CORTE: 15,            // corte: 15:30 do dia anterior
-  MIN_CORTE: 30,             // (avisa, nao trava; admin aprova atrasados)
+  HORA_CORTE: 17,            // aviso "past cutoff": a partir das 17:00 do dia anterior
+  MIN_CORTE: 0,              //
+  HORA_BLOQUEIO: 17,         // bloqueio total: a partir das 17:30 do dia anterior
+  MIN_BLOQUEIO: 30,          //
   PRECO_AVULSO: 14,
   PRECO_SEMANA: 12,          // por marmita, se levar os 5 dias
   PRECO_ESPECIAL: 15,
