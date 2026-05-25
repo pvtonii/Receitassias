@@ -251,14 +251,67 @@ const Menu = {
   },
 
   /* --- datas --- */
-  async _pedirData() {
-    const hoje = new Date();
-    const sugestao = this._iso(hoje);
-    const txt = prompt("Week start (Monday) — format YYYY-MM-DD:", sugestao);
-    if (!txt) return null;
-    const d = new Date(txt + "T00:00:00");
-    if (isNaN(d)) { alert("Invalid date. Use YYYY-MM-DD."); return null; }
-    return d;
+  _pedirData() {
+    return new Promise(resolve => {
+      // sugere a proxima segunda-feira
+      const hoje = new Date();
+      const diff = hoje.getDay() === 0 ? 1 : 8 - hoje.getDay();
+      const proxSegunda = new Date(hoje);
+      proxSegunda.setDate(hoje.getDate() + diff);
+
+      const overlay = document.createElement("div");
+      overlay.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;" +
+        "display:flex;align-items:flex-end;justify-content:center";
+
+      overlay.innerHTML = `
+        <div style="background:#fff;width:100%;max-width:720px;border-radius:16px 16px 0 0;
+                    padding:24px 24px calc(24px + env(safe-area-inset-bottom))">
+          <h3 style="margin:0 0 4px">New week</h3>
+          <p style="color:var(--texto-suave);font-size:14px;margin:0 0 16px">
+            Pick any day — the Monday of that week is used.</p>
+          <input type="date" id="seletor-data" class="campo"
+                 value="${this._iso(proxSegunda)}"
+                 style="width:100%;margin-bottom:10px">
+          <div id="seletor-preview" style="font-size:14px;color:var(--texto-suave);
+               min-height:20px;margin-bottom:20px"></div>
+          <div style="display:flex;gap:10px">
+            <button class="btn-secundario" id="seletor-cancel" style="flex:1">Cancel</button>
+            <button class="btn" id="seletor-ok" style="flex:1">Create week</button>
+          </div>
+        </div>`;
+
+      document.body.appendChild(overlay);
+
+      const input  = overlay.querySelector("#seletor-data");
+      const preview = overlay.querySelector("#seletor-preview");
+
+      const atualizar = () => {
+        if (!input.value) { preview.textContent = ""; return; }
+        const monday = this._snapMonday(new Date(input.value + "T00:00:00"));
+        const friday = new Date(monday);
+        friday.setDate(friday.getDate() + 4);
+        preview.innerHTML = `Week: <strong>${this._intervalo(this._iso(monday), this._iso(friday))}</strong>`;
+      };
+      input.addEventListener("input", atualizar);
+      atualizar();
+
+      const fechar = val => { document.body.removeChild(overlay); resolve(val); };
+
+      overlay.querySelector("#seletor-cancel").addEventListener("click", () => fechar(null));
+      overlay.querySelector("#seletor-ok").addEventListener("click", () => {
+        if (!input.value) return;
+        fechar(this._snapMonday(new Date(input.value + "T00:00:00")));
+      });
+      overlay.addEventListener("click", e => { if (e.target === overlay) fechar(null); });
+    });
+  },
+
+  // retorna a segunda-feira da semana do dia informado
+  _snapMonday(d) {
+    const day = d.getDay();
+    const monday = new Date(d);
+    monday.setDate(d.getDate() + (day === 0 ? -6 : 1 - day));
+    return monday;
   },
   _diaData(inicioIso, offset) {
     const d = new Date(inicioIso + "T00:00:00");

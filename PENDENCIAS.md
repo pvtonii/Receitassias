@@ -1,18 +1,7 @@
 # PENDENCIAS - ReceiTassia's
 
-Versao atual: 1.17.0
-Ultima coisa feita: bloqueio por horario no Order (17:00 aviso / 17:30 bloqueia).
-
----
-
-## MELHORIAS ANOTADAS PRA DEPOIS
-
-- [ ] **Travar caloteiro** — bloquear novo pedido de quem tem divida aberta (a decidir)
-- [ ] **Seletor de data no Menu admin** — hoje a semana e criada automaticamente
-      a partir da segunda mais proxima; considerar permitir escolher outra data
-- [ ] **PWA: icone definitivo** — icones atuais sao provisorios (icon-180/192/512.png)
-- [ ] **Polimento visual geral** — cores, contrastes e espacamentos quando
-      o fluxo todo estiver estavel
+Versao atual: 1.18.0
+Ultima coisa feita: seletor de data visual no Menu admin (substituiu o prompt()).
 
 ---
 
