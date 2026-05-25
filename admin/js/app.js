@@ -19,6 +19,7 @@ function montarNav() {
   document.getElementById("topo").innerHTML = `
     <div class="topbar">
       <strong>Admin ReceiTassia's</strong>
+      <button class="topbar-icone" onclick="forcarAtualizacao()" title="Refresh">&#8635;</button>
       <button class="sair" onclick="Auth.sair()">Log out</button>
     </div>`;
 
