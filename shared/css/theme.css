@@ -144,12 +144,18 @@ label { font-size: 14px; font-weight: 600; color: var(--texto-suave); }
   padding-top: calc(14px + env(safe-area-inset-top)); /* nao fica sob o notch */
   background: var(--cor-verde-escuro); color: #fff;
 }
-.topbar strong { font-size: 17px; letter-spacing: 0.3px; }
+.topbar strong { font-size: 17px; letter-spacing: 0.3px; flex: 1; }
 .topbar .sair {
   background: transparent; border: 1px solid rgba(255,255,255,.3);
   color: #fff; padding: 6px 12px; border-radius: var(--raio-sm);
   font-size: 14px; cursor: pointer;
 }
+.topbar-icone {
+  background: transparent; border: none; color: #fff;
+  font-size: 20px; cursor: pointer; padding: 4px 10px;
+  opacity: 0.85; line-height: 1;
+}
+.topbar-icone:active { transform: rotate(180deg); transition: transform 0.3s; }
 
 /* ===== BARRA DE NAVEGACAO INFERIOR (estilo iPhone) ===== */
 .tabbar {
