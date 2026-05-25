@@ -10,6 +10,7 @@ const Dashboard = {
   async render(container) {
     container.innerHTML = `
       <h2 style="margin-bottom:14px">Hi${Auth._cliente ? ", " + this._esc(Auth._cliente.nome.split(" ")[0]) : ""}!</h2>
+      <div id="alerta-pendentes"></div>
       <div id="card-amanha" style="margin-bottom:22px">Loading...</div>
       <h3 style="margin-bottom:10px">My orders</h3>
       <div id="meus-pedidos">Loading...</div>`;
@@ -48,6 +49,7 @@ const Dashboard = {
   /* --- lista de pedidos do cliente --- */
   async _meusPedidos() {
     const el = document.getElementById("meus-pedidos");
+    const alerta = document.getElementById("alerta-pendentes");
     const cliente = Auth._cliente;
     if (!cliente) { el.innerHTML = this._aviso("Please log in again."); return; }
 
@@ -58,31 +60,62 @@ const Dashboard = {
 
     if (error) { el.innerHTML = this._aviso("Error: " + error.message); return; }
     if (!data || !data.length) {
+      if (alerta) alerta.innerHTML = "";
       el.innerHTML = this._aviso("No orders yet. Tap Order to get started!");
       return;
     }
 
-    // nao-pagos (pendente, nao cancelado) agrupados POR SEMANA
+    // nao-pagos (pendente, nao cancelado): vamos separar em ATRASADOS x POR VIR
+    const hojeIso = this._hojeCentralIso();
     const abertos = data.filter(p => p.status_pagamento === "pendente" && !p.cancelado);
     const resto   = data.filter(p => !(p.status_pagamento === "pendente" && !p.cancelado));
 
-    let html = "";
-
-    if (abertos.length) {
-      // agrupa por semana (segunda-feira da semana de cada dia_consumo)
-      const semanas = {};
-      for (const p of abertos) {
-        const chave = this._segundaDaSemana(p.dia_consumo);
-        (semanas[chave] = semanas[chave] || []).push(p);
-      }
-      const chavesOrdenadas = Object.keys(semanas).sort();
-
-      html += `<div style="font-size:12px;font-weight:700;text-transform:uppercase;
-                 letter-spacing:.5px;color:var(--erro);margin:4px 0 8px">To pay</div>`;
-      for (const ch of chavesOrdenadas) {
-        html += this._cardSemana(ch, semanas[ch]);
+    // banner topo: resumo de TUDO que esta em aberto (somando atrasados + por vir)
+    if (alerta) {
+      if (abertos.length) {
+        const totalAbertos = abertos.reduce((s, p) => s + Number(p.total), 0);
+        const idsAbertos = abertos.map(p => p.id).join(",");
+        alerta.innerHTML = `
+          <div class="card" style="border:2px solid var(--erro);
+               background:rgba(217,48,37,.06);margin-bottom:18px">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+              <div style="flex:1;min-width:0">
+                <div style="font-weight:700;color:var(--erro);font-size:15px">
+                  💸 ${abertos.length} unpaid meal(s)</div>
+                <div style="font-size:13px;color:var(--texto-suave);margin-top:2px">
+                  $${totalAbertos.toFixed(0)} total — please pay so we can keep cooking!</div>
+              </div>
+              <button class="btn" style="padding:10px 16px;background:var(--erro)"
+                onclick="Dashboard._pagarSemana('${idsAbertos}', ${totalAbertos})">Pay now</button>
+            </div>
+          </div>`;
+      } else {
+        alerta.innerHTML = "";
       }
     }
+
+    // separa cada pedido em "atrasada" (dia ja passou) ou "por vir", agrupando por semana
+    const semanasAtrasadas = {};
+    const semanasFuturas = {};
+    for (const p of abertos) {
+      const chave = this._segundaDaSemana(p.dia_consumo);
+      const bucket = (p.dia_consumo < hojeIso ? semanasAtrasadas : semanasFuturas);
+      (bucket[chave] = bucket[chave] || []).push(p);
+    }
+
+    let html = "";
+
+    const renderBloco = (titulo, cor, mapa, atrasada) => {
+      const chaves = Object.keys(mapa).sort();
+      if (!chaves.length) return "";
+      let s = `<div style="font-size:12px;font-weight:700;text-transform:uppercase;
+                letter-spacing:.5px;color:${cor};margin:4px 0 8px">${titulo}</div>`;
+      for (const ch of chaves) s += this._cardSemana(ch, mapa[ch], atrasada);
+      return s;
+    };
+
+    html += renderBloco("Overdue — please pay", "var(--erro)", semanasAtrasadas, true);
+    html += renderBloco("Upcoming — to pay", "var(--primaria)", semanasFuturas, false);
 
     if (resto.length) {
       html += `<div style="font-size:12px;font-weight:700;text-transform:uppercase;
@@ -92,11 +125,13 @@ const Dashboard = {
     el.innerHTML = html;
   },
 
-  /* Card de uma SEMANA com pedidos a pagar: total + 1 Pay now */
-  _cardSemana(segundaIso, pedidos) {
+  /* Card de uma SEMANA com pedidos a pagar: total + 1 Pay now
+     atrasada=true muda a cor pra vermelho e marca "OVERDUE" no header */
+  _cardSemana(segundaIso, pedidos, atrasada) {
     const total = pedidos.reduce((s, p) => s + Number(p.total), 0);
     const qtd = pedidos.length;
     const ids = pedidos.map(p => p.id).join(",");
+    const cor = atrasada ? "var(--erro)" : "var(--primaria)";
     // lista os dias/marmitas dessa semana
     const linhas = pedidos
       .sort((a,b) => a.dia_consumo.localeCompare(b.dia_consumo))
@@ -108,13 +143,13 @@ const Dashboard = {
       }).join("");
 
     return `
-      <div class="card" style="margin-bottom:10px;border:2px solid var(--primaria)">
-        <div style="font-weight:700;margin-bottom:6px">
-          Week of ${this._diaCurto(segundaIso)} · ${qtd} meal(s)</div>
+      <div class="card" style="margin-bottom:10px;border:2px solid ${cor}">
+        <div style="font-weight:700;margin-bottom:6px${atrasada ? ";color:var(--erro)" : ""}">
+          Week of ${this._diaCurto(segundaIso)} · ${qtd} meal(s)${atrasada ? " · OVERDUE" : ""}</div>
         ${linhas}
         <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px">
           <div style="font-weight:700;font-size:18px">$${total.toFixed(0)}</div>
-          <button class="btn" style="padding:10px 18px"
+          <button class="btn" style="padding:10px 18px${atrasada ? ";background:var(--erro)" : ""}"
             onclick="Dashboard._pagarSemana('${ids}', ${total})">Pay now</button>
         </div>
       </div>`;
@@ -175,6 +210,11 @@ const Dashboard = {
     const s = new Date().toLocaleString("en-US", { timeZone: "America/Chicago" });
     const d = new Date(s);
     d.setDate(d.getDate() + 1);
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+  },
+  _hojeCentralIso() {
+    const s = new Date().toLocaleString("en-US", { timeZone: "America/Chicago" });
+    const d = new Date(s);
     return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
   },
   _fmtData(iso) {

@@ -194,6 +194,18 @@ const Pedido = {
       this._dias.push(it);
     }
 
+    // busca pendencias do cliente p/ exibir aviso amigavel no topo (nao bloqueia)
+    this._pendentes = [];
+    const cliente = Auth._cliente;
+    if (cliente) {
+      const { data: pendentes } = await sb.from("pedidos")
+        .select("id,total,dia_consumo")
+        .eq("cliente_id", cliente.id)
+        .eq("status_pagamento", "pendente")
+        .eq("cancelado", false);
+      this._pendentes = pendentes || [];
+    }
+
     this._desenhar();
   },
 
@@ -203,6 +215,7 @@ const Pedido = {
     const { semanaCheia } = this._calcular();
 
     el.innerHTML = `
+      ${this._bannerPendentes()}
       <div style="font-weight:600;margin-bottom:12px">
         ${this._intervalo(this._semana.semana_inicio, this._semana.semana_fim)}</div>
       ${this._dias.map(d => this._cardDia(d, m, semanaCheia)).join("")}
@@ -213,6 +226,28 @@ const Pedido = {
            border:2px solid var(--primaria)"></div>`;
 
     this._atualizarResumo();
+  },
+
+  /* Aviso (nao bloqueia) de marmitas que o cliente ainda nao marcou como pago */
+  _bannerPendentes() {
+    const pend = this._pendentes || [];
+    if (!pend.length) return "";
+    const total = pend.reduce((s, p) => s + Number(p.total), 0);
+    const ids = pend.map(p => p.id).join(",");
+    return `
+      <div class="card" style="border:2px solid var(--erro);
+           background:rgba(217,48,37,.06);margin-bottom:14px">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+          <div style="flex:1;min-width:0">
+            <div style="font-weight:700;color:var(--erro);font-size:14px">
+              ⚠️ ${pend.length} unpaid meal(s) — $${total.toFixed(0)}</div>
+            <div style="font-size:12px;color:var(--texto-suave);margin-top:2px">
+              Please settle before they pile up.</div>
+          </div>
+          <button class="btn" style="padding:9px 14px;background:var(--erro);font-size:13px"
+            onclick="Pedido._pagarVarios('${ids}'.split(','), ${total})">Pay now</button>
+        </div>
+      </div>`;
   },
 
   _cardDia(d, m, semanaCheia) {
