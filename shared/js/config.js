@@ -6,7 +6,7 @@
    suba o numero abaixo. Os dois footers leem daqui.
 ============================================ */
 
-const APP_VERSION = "1.14.0";
+const APP_VERSION = "1.14.1";
 const APP_DATA    = "2026-05-24";
 
 /* ============================================
@@ -65,16 +65,22 @@ function aplicarVersaoNoFooter() {
 
 /* Forca recarregar o app ignorando o cache (botao de refresh no header).
    O truque do ?v=timestamp faz o navegador buscar tudo de novo. */
-async function forcarAtualizacao() {
+async function forcarAtualizacao(botao) {
+  // faz o icone girar (feedback visual antes de recarregar)
+  const ico = botao || document.querySelector(".topbar-icone");
+  if (ico) ico.classList.add("girando");
+
   try {
-    // limpa caches do navegador, se houver (PWA/service worker)
     if (window.caches && caches.keys) {
       const chaves = await caches.keys();
       await Promise.all(chaves.map(k => caches.delete(k)));
     }
   } catch (e) { /* ignora; segue pro reload */ }
-  // recarrega com parametro novo na URL -> ignora cache
-  const u = new URL(window.location.href);
-  u.searchParams.set("v", Date.now());
-  window.location.replace(u.toString());
+
+  // pequena pausa pra o giro ser visivel, depois recarrega ignorando cache
+  setTimeout(() => {
+    const u = new URL(window.location.href);
+    u.searchParams.set("v", Date.now());
+    window.location.replace(u.toString());
+  }, 600);
 }
