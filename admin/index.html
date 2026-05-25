@@ -34,18 +34,19 @@
     Receitassias Admin &middot; v<span id="app-version"></span> &middot; <span id="app-data"></span>
   </footer>
 
-  <!-- base compartilhada -->
+  <!-- config carrega primeiro (tem APP_VERSION + o carregador) -->
   <script src="../shared/js/config.js"></script>
-  <script src="../shared/js/auth.js"></script>
-  <!-- setores do admin -->
-  <script src="js/dashboard.js"></script>
-  <script src="js/pedidos.js"></script>
-  <script src="js/ingredientes.js"></script>
-  <script src="js/clientes.js"></script>
-  <script src="js/menu.js"></script>
-  <!-- roteador -->
-  <script src="js/app.js"></script>
-
-  <script>aplicarVersaoNoFooter();</script>
+  <script>
+    // carrega o resto JA com ?v=APP_VERSION (force update automatico)
+    carregarScripts([
+      "../shared/js/auth.js",
+      "js/dashboard.js",
+      "js/pedidos.js",
+      "js/ingredientes.js",
+      "js/clientes.js",
+      "js/menu.js",
+      "js/app.js"        // roteador por ultimo (usa os outros)
+    ], aplicarVersaoNoFooter);
+  </script>
 </body>
 </html>
