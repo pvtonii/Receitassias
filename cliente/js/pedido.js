@@ -220,10 +220,7 @@ const Pedido = {
       <div style="font-weight:600;margin-bottom:12px">
         ${this._intervalo(this._semana.semana_inicio, this._semana.semana_fim)}</div>
       ${this._dias.map(d => this._cardDia(d, m, semanaCheia)).join("")}
-      <div style="height:90px"></div>
-      <div id="ord-resumo" class="card" style="position:fixed;left:50%;
-           transform:translateX(-50%);width:calc(100% - 32px);max-width:688px;
-           bottom:calc(72px + env(safe-area-inset-bottom));z-index:40;
+      <div id="ord-resumo" class="card" style="margin-top:8px;margin-bottom:90px;
            border:2px solid var(--primaria)"></div>`;
 
     this._atualizarResumo();
