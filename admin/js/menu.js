@@ -157,11 +157,22 @@ const Menu = {
       <div id="traduzir-status" style="font-size:12px;color:var(--texto-suave);
            margin-top:-10px;margin-bottom:10px;min-height:16px"></div>
 
-      <label style="display:flex;align-items:center;gap:10px;margin:4px 0 16px;cursor:pointer;
-                    color:var(--texto);font-size:16px;font-weight:600">
-        <input type="checkbox" id="m-especial" ${especial ? "checked" : ""}
-               style="width:22px;height:22px"> This is a special ($15)
-      </label>
+      <input type="checkbox" id="m-especial" ${especial ? "checked" : ""}
+             style="display:none">
+      <div id="card-especial" onclick="Menu._toggleEspecial()"
+           style="margin:4px 0 16px;padding:14px 16px;border-radius:var(--raio);
+                  border:2px solid ${especial ? "var(--especial)" : "var(--borda)"};
+                  background:${especial ? "rgba(199,165,108,0.12)" : "#fff"};
+                  display:flex;align-items:center;gap:12px;cursor:pointer;
+                  transition:border-color .15s,background .15s">
+        <span id="especial-estrela" style="font-size:22px;line-height:1">
+          ${especial ? "⭐" : "☆"}</span>
+        <div style="flex:1">
+          <div style="font-weight:700;font-size:15px;color:var(--texto)">Special meal</div>
+          <div style="font-size:13px;color:var(--texto-suave)">$15 per meal, always</div>
+        </div>
+        ${especial ? '<span class="badge-especial">ON</span>' : '<span style="font-size:13px;color:var(--texto-suave)">OFF</span>'}
+      </div>
 
       <label style="display:block;margin-bottom:8px;color:var(--texto);font-size:16px;font-weight:600">
         Ingredients</label>
@@ -215,6 +226,20 @@ const Menu = {
   },
 
   _traduzir() { traduzirCampo("m-nome", "traduzir-status", "btn-traduzir"); },
+
+  _toggleEspecial() {
+    const chk   = document.getElementById("m-especial");
+    const card  = document.getElementById("card-especial");
+    const star  = document.getElementById("especial-estrela");
+    chk.checked = !chk.checked;
+    const on = chk.checked;
+    card.style.borderColor = on ? "var(--especial)" : "var(--borda)";
+    card.style.background  = on ? "rgba(199,165,108,0.12)" : "#fff";
+    star.textContent = on ? "⭐" : "☆";
+    card.children[2].outerHTML = on
+      ? '<span class="badge-especial">ON</span>'
+      : '<span style="font-size:13px;color:var(--texto-suave)">OFF</span>';
+  },
 
   async _salvarDia(menuId, iso, itemId) {
     const erro = document.getElementById("m-erro");
