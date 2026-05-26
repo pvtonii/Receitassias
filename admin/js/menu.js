@@ -276,12 +276,13 @@ const Menu = {
           <h3 style="margin:0 0 4px">New week</h3>
           <p style="color:var(--texto-suave);font-size:14px;margin:0 0 16px">
             Pick any day — the Monday of that week is used.</p>
-          <input type="date" id="seletor-data"
-                 value="${this._iso(proxSegunda)}"
-                 style="display:block;width:100%;max-width:100%;box-sizing:border-box;
-                        padding:8px 12px;border:1px solid var(--borda);
-                        border-radius:var(--raio-sm);font-size:16px;
-                        background:#fff;color:var(--texto);margin-bottom:8px">
+          <div style="display:flex;margin-bottom:8px">
+            <input type="date" id="seletor-data"
+                   value="${this._iso(proxSegunda)}"
+                   style="flex:1;min-width:0;padding:8px 12px;
+                          border:1px solid var(--borda);border-radius:var(--raio-sm);
+                          font-size:16px;background:#fff;color:var(--texto)">
+          </div>
           <div id="seletor-preview" style="font-size:14px;color:var(--texto-suave);
                min-height:20px;margin-bottom:20px"></div>
           <div style="display:flex;gap:10px">
