@@ -99,6 +99,24 @@ const Menu = {
   _cardDia(menuId, diaNome, dataDia, item) {
     const iso = this._iso(dataDia);
     const temItem = !!item;
+    const fechado = item?.fechado;
+
+    if (fechado) {
+      return `
+        <div class="card" style="margin-bottom:12px;border-style:dashed;opacity:0.55">
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="flex:1;min-width:0">
+              <div style="font-weight:600">${diaNome} · ${this._diaMes(dataDia)}</div>
+              <div style="font-size:13px;color:var(--texto-suave);margin-top:2px">
+                No meal this day</div>
+            </div>
+            <button class="btn-secundario"
+                    style="padding:0 14px;height:40px;min-height:0;flex-shrink:0"
+                    onclick="Menu._restaurarDia('${menuId}','${item.id}')">Restore</button>
+          </div>
+        </div>`;
+    }
+
     return `
       <div class="card" style="margin-bottom:12px">
         <div style="display:flex;align-items:center;gap:8px">
@@ -113,12 +131,44 @@ const Menu = {
                 $${Number(item.preco).toFixed(0)}${item._ings && item._ings.length ? " · " + item._ings.map(x => this._esc(x)).join(", ") : ""}
               </div>` : ""}
           </div>
-          <button class="btn-secundario"
-                  style="padding:0 14px;height:40px;min-height:0;flex-shrink:0"
-                  onclick="Menu._editarDia('${menuId}','${iso}','${diaNome}', ${item ? `'${item.id}'` : "null"})">
-            ${temItem ? "Edit" : "+ Add"}</button>
+          <div style="display:flex;gap:6px;align-items:center;flex-shrink:0">
+            <button class="btn-icone" title="No meal this day"
+                    style="color:var(--erro)"
+                    onclick="Menu._fecharDia('${menuId}','${iso}',${item ? `'${item.id}'` : "null"})">⊘</button>
+            <button class="btn-secundario"
+                    style="padding:0 14px;height:40px;min-height:0"
+                    onclick="Menu._editarDia('${menuId}','${iso}','${diaNome}',${item ? `'${item.id}'` : "null"})">
+              ${temItem ? "Edit" : "+ Add"}</button>
+          </div>
         </div>
       </div>`;
+  },
+
+  async _fecharDia(menuId, iso, itemId) {
+    if (itemId && itemId !== "null") {
+      // ja tem marmita: confirma antes de fechar
+      if (!confirm("Mark this day as No meal? The meal data will be kept.")) return;
+      const { error } = await sb.from("menu_itens").update({ fechado: true }).eq("id", itemId);
+      if (error) { alert("Error: " + error.message); return; }
+    } else {
+      // sem marmita: cria placeholder fechado
+      const { error } = await sb.from("menu_itens")
+        .insert({ menu_id: menuId, dia: iso, nome: "", preco: 0, fechado: true });
+      if (error) { alert("Error: " + error.message); return; }
+    }
+    this._abrirSemana(menuId);
+  },
+
+  async _restaurarDia(menuId, itemId) {
+    const item = this._cacheItens?.find(i => i.id === itemId);
+    if (!item || !item.nome) {
+      // placeholder vazio: apaga
+      await sb.from("menu_itens").delete().eq("id", itemId);
+    } else {
+      // tinha marmita: restaura
+      await sb.from("menu_itens").update({ fechado: false }).eq("id", itemId);
+    }
+    this._abrirSemana(menuId);
   },
 
   /* Formulario da marmita de um dia */

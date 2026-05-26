@@ -184,9 +184,10 @@ const Pedido = {
     const { data: itens } = await sb.from("menu_itens")
       .select("*").eq("menu_id", this._semana.id).order("dia", { ascending: true });
 
-    // anexa info de ingredientes e de prazo a cada dia
+    // anexa info de ingredientes e de prazo a cada dia (ignora dias fechados)
     this._dias = [];
     for (const it of (itens || [])) {
+      if (it.fechado) continue;
       const { data: links } = await sb.from("menu_item_ingredientes")
         .select("ingredientes(nome)").eq("menu_item_id", it.id);
       it._ings = (links || []).map(l => l.ingredientes && l.ingredientes.nome).filter(Boolean);
@@ -315,8 +316,9 @@ const Pedido = {
   _calcular() {
     const escolhidos = this._dias.filter(d => this._sel.has(d.id));
     const disponiveis = this._dias.filter(d => !d._passado);
-    const semanaCheia = escolhidos.length === REGRAS.DIAS_SEMANA
-      && disponiveis.length === REGRAS.DIAS_SEMANA;
+    // desconto quando TODOS os dias disponiveis forem selecionados
+    const semanaCheia = disponiveis.length > 0
+      && escolhidos.length === disponiveis.length;
 
     let total = 0;
     for (const d of escolhidos) {
@@ -494,7 +496,7 @@ const Pedido = {
         cliente_id: cliente.id,
         dia_consumo: d.dia,
         total: Number(d.especial ? REGRAS.PRECO_ESPECIAL
-              : (escolhidos.length === REGRAS.DIAS_SEMANA && this._dias.filter(x => !x._passado).length === REGRAS.DIAS_SEMANA
+              : (escolhidos.length === this._dias.filter(x => !x._passado).length
                  ? REGRAS.PRECO_SEMANA : REGRAS.PRECO_AVULSO)),
         status_pagamento: statusPag,       // "pago" (cliente marcou) ou "pendente"
         metodo_pagamento: metodo,          // CashApp / Venmo / Zelle / Apple Cash / null
