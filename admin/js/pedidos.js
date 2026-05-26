@@ -162,7 +162,7 @@ const Pedidos = {
           <div style="display:flex;gap:8px;margin-top:8px">
             <button class="btn" style="flex:1;padding:10px"
               onclick="Pedidos._aprovar('${p.id}', true)">Accept</button>
-            <button class="btn-perigo" style="flex:1;padding:10px"
+            <button class="btn btn-perigo" style="flex:1;padding:10px"
               onclick="Pedidos._aprovar('${p.id}', false)">Too late</button>
           </div>` : ""}
         ${(p.status_pagamento === "pago") ? `

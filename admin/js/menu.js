@@ -171,7 +171,7 @@ const Menu = {
 
       <div class="erro-msg" id="m-erro"></div>
       <button class="btn" id="m-salvar" style="width:100%;margin-bottom:10px">Save meal</button>
-      ${itemId ? `<button class="btn-perigo" id="m-remover" style="width:100%">Remove meal</button>` : ""}`;
+      ${itemId ? `<button class="btn btn-perigo" id="m-remover" style="width:100%">Remove meal</button>` : ""}`;
 
     document.getElementById("m-salvar")
       .addEventListener("click", () => this._salvarDia(menuId, iso, itemId));
