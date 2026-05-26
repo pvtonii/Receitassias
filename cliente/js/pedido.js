@@ -316,9 +316,9 @@ const Pedido = {
   _calcular() {
     const escolhidos = this._dias.filter(d => this._sel.has(d.id));
     const disponiveis = this._dias.filter(d => !d._passado);
-    // desconto quando TODOS os dias disponiveis forem selecionados
-    const semanaCheia = disponiveis.length > 0
-      && escolhidos.length === disponiveis.length;
+    // desconto somente quando TODOS os dias da semana (exceto fechados pelo admin) sao pedidos
+    const semanaCheia = this._dias.length > 0
+      && escolhidos.length === this._dias.length;
 
     let total = 0;
     for (const d of escolhidos) {
@@ -496,7 +496,7 @@ const Pedido = {
         cliente_id: cliente.id,
         dia_consumo: d.dia,
         total: Number(d.especial ? REGRAS.PRECO_ESPECIAL
-              : (escolhidos.length === this._dias.filter(x => !x._passado).length
+              : (escolhidos.length === this._dias.length
                  ? REGRAS.PRECO_SEMANA : REGRAS.PRECO_AVULSO)),
         status_pagamento: statusPag,       // "pago" (cliente marcou) ou "pendente"
         metodo_pagamento: metodo,          // CashApp / Venmo / Zelle / Apple Cash / null
