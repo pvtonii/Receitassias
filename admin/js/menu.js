@@ -278,7 +278,8 @@ const Menu = {
             Pick any day — the Monday of that week is used.</p>
           <input type="date" id="seletor-data"
                  value="${this._iso(proxSegunda)}"
-                 style="width:100%;padding:10px 12px;border:1px solid var(--borda);
+                 style="display:block;width:100%;max-width:100%;box-sizing:border-box;
+                        padding:8px 12px;border:1px solid var(--borda);
                         border-radius:var(--raio-sm);font-size:16px;
                         background:#fff;color:var(--texto);margin-bottom:8px">
           <div id="seletor-preview" style="font-size:14px;color:var(--texto-suave);
