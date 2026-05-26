@@ -6,7 +6,7 @@
    suba o numero abaixo. Os dois footers leem daqui.
 ============================================ */
 
-const APP_VERSION = "1.19.0";
+const APP_VERSION = "1.20.0";
 const APP_DATA    = "2026-05-25";
 
 /* ============================================
@@ -79,6 +79,30 @@ function carregarScripts(lista, aoTerminar) {
     document.body.appendChild(s);
   }
   proximo();
+}
+
+/* Traduz o texto de um campo PT->EN via MyMemory (sem chave de API).
+   inputId: id do <input> | statusId: id do elemento de feedback */
+async function traduzirCampo(inputId, statusId, btnId) {
+  const input  = document.getElementById(inputId);
+  const status = document.getElementById(statusId);
+  const btn    = btnId ? document.getElementById(btnId) : null;
+  const texto  = input ? input.value.trim() : "";
+  if (!texto) { if (status) status.textContent = "Digite o nome primeiro."; return; }
+  if (btn) btn.disabled = true;
+  if (status) status.textContent = "Traduzindo...";
+  try {
+    const res  = await fetch("https://api.mymemory.translated.net/get?q="
+      + encodeURIComponent(texto) + "&langpair=pt|en");
+    const json = await res.json();
+    const trad = json?.responseData?.translatedText;
+    if (!trad) throw new Error();
+    input.value = trad;
+    if (status) { status.textContent = "✓ PT → EN"; setTimeout(() => { status.textContent = ""; }, 3000); }
+  } catch {
+    if (status) status.textContent = "Erro ao traduzir. Verifique a conexão.";
+  }
+  if (btn) btn.disabled = false;
 }
 
 /* Forca recarregar o app ignorando o cache (botao de refresh no header).

@@ -190,32 +190,29 @@ const Menu = {
       document.getElementById("m-remover")
         .addEventListener("click", () => this._removerDia(menuId, itemId));
     }
+
+    // auto-preenche Meal Name com a proteina marcada
+    // (so sobrescreve se o campo ainda tem o valor auto-preenchido anterior)
+    const nomeInput = document.getElementById("m-nome");
+    let autoNome = "";   // "" = ainda nao foi auto-preenchido manualmente
+
+    const syncNomeProteina = () => {
+      const protChk = [...document.querySelectorAll(".ing-chk:checked")].find(chk => {
+        const ing = this._ingredientes.find(i => i.id === chk.value);
+        return ing && (ing.categoria || "").toLowerCase().includes("protein");
+      });
+      const novoNome = protChk
+        ? (this._ingredientes.find(i => i.id === protChk.value)?.nome || "") : "";
+      if (nomeInput.value === autoNome) {
+        nomeInput.value = novoNome;
+        autoNome = novoNome;
+      }
+    };
+    document.querySelectorAll(".ing-chk")
+      .forEach(chk => chk.addEventListener("change", syncNomeProteina));
   },
 
-  async _traduzir() {
-    const input  = document.getElementById("m-nome");
-    const status = document.getElementById("traduzir-status");
-    const btn    = document.getElementById("btn-traduzir");
-    const texto  = input.value.trim();
-    if (!texto) { status.textContent = "Digite o nome primeiro."; return; }
-
-    btn.disabled = true;
-    status.textContent = "Traduzindo...";
-    try {
-      const url = "https://api.mymemory.translated.net/get?q="
-        + encodeURIComponent(texto) + "&langpair=pt|en";
-      const res  = await fetch(url);
-      const json = await res.json();
-      const trad = json?.responseData?.translatedText;
-      if (!trad) throw new Error("sem resposta");
-      input.value = trad;
-      status.textContent = "✓ Traduzido de PT → EN";
-      setTimeout(() => { status.textContent = ""; }, 3000);
-    } catch {
-      status.textContent = "Erro ao traduzir. Verifique a conexão.";
-    }
-    btn.disabled = false;
-  },
+  _traduzir() { traduzirCampo("m-nome", "traduzir-status", "btn-traduzir"); },
 
   async _salvarDia(menuId, iso, itemId) {
     const erro = document.getElementById("m-erro");

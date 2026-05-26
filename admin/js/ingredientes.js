@@ -81,8 +81,17 @@ const Ingredientes = {
       <h2 style="margin-bottom:16px">${editando ? "Edit" : "New"} ingredient</h2>
 
       <label>Name</label>
-      <input class="campo" id="f-nome" type="text" placeholder="e.g. Grilled chicken"
-             value="${editando ? this._esc(editando.nome) : ""}">
+      <div style="display:flex;gap:8px;align-items:flex-start;margin:6px 0 14px">
+        <input class="campo" id="f-nome" type="text" placeholder="e.g. Grilled chicken"
+               value="${editando ? this._esc(editando.nome) : ""}"
+               style="flex:1;min-width:0;margin:0">
+        <button class="btn-secundario" id="btn-trad-ing"
+                title="Traduzir PT → EN"
+                style="height:48px;padding:0 12px;flex-shrink:0;font-size:18px">
+          🌐</button>
+      </div>
+      <div id="trad-ing-status" style="font-size:12px;color:var(--texto-suave);
+           margin-top:-10px;margin-bottom:10px;min-height:16px"></div>
 
       <label>Category</label>
       <input class="campo" id="f-cat" type="text" list="cats-usadas"
@@ -101,6 +110,8 @@ const Ingredientes = {
       .addEventListener("click", () => this._salvar(id));
     document.getElementById("f-cancelar")
       .addEventListener("click", () => this.render(container));
+    document.getElementById("btn-trad-ing")
+      .addEventListener("click", () => traduzirCampo("f-nome", "trad-ing-status", "btn-trad-ing"));
   },
 
   async _salvar(id) {
