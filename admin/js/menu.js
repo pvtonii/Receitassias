@@ -157,12 +157,8 @@ const Menu = {
       <div id="traduzir-status" style="font-size:12px;color:var(--texto-suave);
            margin-top:-10px;margin-bottom:10px;min-height:16px"></div>
 
-      <label style="display:flex;align-items:center;gap:10px;margin:10px 0 16px;cursor:pointer">
-        <input type="checkbox" id="m-especial" ${especial ? "checked" : ""}
-               style="width:22px;height:22px"> This is a special ($15)
-      </label>
-
-      <label style="display:block;margin-bottom:8px">Ingredients</label>
+      <label style="display:block;margin-bottom:8px;color:var(--texto);font-size:16px;font-weight:600">
+        Ingredients</label>
       <div id="m-ings">
         ${Object.keys(grupos).map(cat => `
           <div style="margin-bottom:12px">
@@ -177,6 +173,12 @@ const Menu = {
               </label>`).join("")}
           </div>`).join("") || this._aviso("No ingredients. Add some in the Items tab first.")}
       </div>
+
+      <label style="display:flex;align-items:center;gap:10px;margin:16px 0;cursor:pointer;
+                    color:var(--texto);font-size:16px;font-weight:600">
+        <input type="checkbox" id="m-especial" ${especial ? "checked" : ""}
+               style="width:22px;height:22px"> This is a special ($15)
+      </label>
 
       <div class="erro-msg" id="m-erro"></div>
       <button class="btn" id="m-salvar" style="width:100%;margin-bottom:10px">Save meal</button>
