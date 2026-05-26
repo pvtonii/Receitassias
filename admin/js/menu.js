@@ -132,11 +132,9 @@ const Menu = {
               </div>` : ""}
           </div>
           <div style="display:flex;gap:6px;align-items:center;flex-shrink:0">
-            <button class="btn-secundario" title="No meal this day"
-                    style="padding:0 12px;height:40px;min-height:0;
-                           color:var(--erro);border-color:var(--erro)"
-                    onclick="Menu._fecharDia('${menuId}','${iso}',${item ? `'${item.id}'` : "null"})">
-              ⊘ No meal</button>
+            <button class="btn-icone" title="No meal this day"
+                    style="color:var(--erro);font-size:22px"
+                    onclick="Menu._fecharDia('${menuId}','${iso}',${item ? `'${item.id}'` : "null"})">✕</button>
             <button class="btn-secundario"
                     style="padding:0 14px;height:40px;min-height:0"
                     onclick="Menu._editarDia('${menuId}','${iso}','${diaNome}',${item ? `'${item.id}'` : "null"})">
