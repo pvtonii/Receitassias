@@ -18,9 +18,10 @@ const Profile = {
       <input class="campo" id="p-nome" type="text" value="${this._esc(c.nome || "")}">
 
       <label>Phone</label>
-      <input class="campo" id="p-tel" type="tel" value="${this._fmtTel(c.telefone)}">
+      <div class="campo" style="background:var(--bg);color:var(--texto-suave);cursor:default">
+        ${this._fmtTel(c.telefone)}</div>
       <div style="font-size:12px;color:var(--texto-suave);margin:-8px 0 14px">
-        Changing your phone also updates your login.</div>
+        To change your phone, contact us.</div>
 
       <div class="erro-msg" id="p-erro"></div>
       <div id="p-ok" style="color:var(--sucesso);font-size:14px;min-height:18px"></div>
@@ -61,45 +62,16 @@ const Profile = {
     erro.textContent = ""; ok.textContent = "";
 
     const nome = document.getElementById("p-nome").value.trim();
-    const telBruto = document.getElementById("p-tel").value.trim();
-    const telefone = telBruto.replace(/\D/g, "");
-    const c = Auth._cliente;
-
-    if (!nome || !telefone) { erro.textContent = "Enter name and phone."; return; }
-
-    const mudouTel = telefone !== c.telefone;
-    if (mudouTel) {
-      if (!confirm("Changing your phone will change your login. Continue?")) return;
-    }
+    if (!nome) { erro.textContent = "Enter your name."; return; }
 
     btn.disabled = true;
-
-    // 1) se mudou o telefone, atualiza o email de login no Auth
-    if (mudouTel) {
-      const { error: eAuth } = await sb.auth.updateUser({
-        email: telefoneParaEmail(telefone)
-      });
-      if (eAuth) {
-        btn.disabled = false;
-        erro.textContent = eAuth.message.includes("already")
-          ? "This phone is already in use."
-          : "Error updating login: " + eAuth.message;
-        return;
-      }
-    }
-
-    // 2) atualiza o registro em clientes
     const { error } = await sb.from("clientes")
-      .update({ nome, telefone }).eq("id", c.id);
+      .update({ nome }).eq("id", Auth._cliente.id);
     btn.disabled = false;
     if (error) { erro.textContent = "Error: " + error.message; return; }
 
-    // atualiza o cache local
     Auth._cliente.nome = nome;
-    Auth._cliente.telefone = telefone;
-    ok.textContent = mudouTel
-      ? "Saved! Use your new phone to log in next time."
-      : "Saved!";
+    ok.textContent = "Saved!";
   },
 
   async _trocarSenha() {
