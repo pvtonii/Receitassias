@@ -11,9 +11,10 @@
 
 const Pedido = {
 
-  _semana: null,      // menu (semana) atual
-  _dias: [],          // itens (marmitas) da semana, com flags de prazo
-  _sel: new Set(),    // ids de menu_itens selecionados
+  _semana: null,
+  _dias: [],
+  _qtd: new Map(),      // dia-iso → quantidade (0 = não selecionado)
+  _semanaCheia: false,
 
   async render(container) {
     container.innerHTML = `
@@ -166,7 +167,7 @@ const Pedido = {
 
   async _carregar() {
     const el = document.getElementById("ord-conteudo");
-    this._sel = new Set();
+    this._qtd = new Map();
 
     // pega a semana mais proxima (que ainda tem dias no futuro)
     const hojeIso = this._hojeCentralIso();
@@ -201,7 +202,7 @@ const Pedido = {
     const cliente = Auth._cliente;
     if (cliente) {
       const { data: pendentes } = await sb.from("pedidos")
-        .select("id,total,dia_consumo")
+        .select("id,total,dia_consumo,quantidade")
         .eq("cliente_id", cliente.id)
         .eq("status_pagamento", "pendente")
         .eq("cancelado", false);
@@ -215,6 +216,7 @@ const Pedido = {
     const el = document.getElementById("ord-conteudo");
     const m = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
     const { semanaCheia } = this._calcular();
+    this._semanaCheia = semanaCheia;
 
     el.innerHTML = `
       ${this._bannerPendentes()}
@@ -232,6 +234,7 @@ const Pedido = {
     const pend = this._pendentes || [];
     if (!pend.length) return "";
     const total = pend.reduce((s, p) => s + Number(p.total), 0);
+    const totalMeals = pend.reduce((s, p) => s + (p.quantidade || 1), 0);
     const ids = pend.map(p => p.id).join(",");
     return `
       <div class="card" style="border:2px solid var(--erro);
@@ -239,7 +242,7 @@ const Pedido = {
         <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
           <div style="flex:1;min-width:0">
             <div style="font-weight:700;color:var(--erro);font-size:14px">
-              ⚠️ ${pend.length} unpaid meal(s) — $${total.toFixed(0)}</div>
+              ⚠️ ${totalMeals} unpaid meal(s) — $${total.toFixed(0)}</div>
             <div style="font-size:12px;color:var(--texto-suave);margin-top:2px">
               Please settle before they pile up.</div>
           </div>
@@ -252,15 +255,13 @@ const Pedido = {
   _cardDia(d, m, semanaCheia) {
     const dt = new Date(d.dia + "T00:00:00");
     const nomeDia = m[(dt.getDay() + 6) % 7];
-    const sel = this._sel.has(d.id);
+    const qty = this._qtd.get(d.dia) || 0;
 
     if (d._passado) {
       return `
         <div class="card" style="margin-bottom:10px;opacity:0.38;cursor:not-allowed;
              pointer-events:none">
           <div style="display:flex;align-items:center;gap:8px">
-            <input type="checkbox" disabled
-                   style="width:22px;height:22px;pointer-events:none">
             <div style="flex:1">
               <div style="font-weight:600">${nomeDia} · ${this._diaMes(dt)}
                 ${d.especial ? '<span class="badge-especial" style="margin-left:6px">SPECIAL</span>' : ""}
@@ -271,19 +272,16 @@ const Pedido = {
               <div style="font-size:12px;margin-top:4px;color:var(--texto-suave)">
                 Not available</div>
             </div>
-            <div style="font-weight:700;text-align:right;color:var(--texto-suave)">
-              $${Number(d.preco).toFixed(0)}</div>
           </div>
         </div>`;
     }
 
     return `
-      <div class="card" style="margin-bottom:10px;
-           ${sel ? "border:2px solid var(--primaria)" : ""}"
-           onclick="Pedido._toggle('${d.id}')">
+      <div class="card" id="card-${d.dia}" style="margin-bottom:10px;
+           transition:border .15s,opacity .15s;
+           ${qty > 0 ? "border:2px solid var(--primaria)" : ""};
+           ${qty === 0 ? "opacity:0.55" : ""}">
         <div style="display:flex;align-items:center;gap:8px">
-          <input type="checkbox" ${sel ? "checked" : ""} class="dia-chk"
-                 style="width:22px;height:22px;pointer-events:none">
           <div style="flex:1">
             <div style="font-weight:600">${nomeDia} · ${this._diaMes(dt)}
               ${d.especial ? '<span class="badge-especial" style="margin-left:6px">SPECIAL</span>' : ""}
@@ -294,41 +292,109 @@ const Pedido = {
             ${d._atrasado ? `<div style="color:var(--erro);font-size:12px;margin-top:4px">
               ⚠️ Past cutoff — needs confirmation</div>` : ""}
           </div>
-          <div style="font-weight:700;text-align:right">
-            ${(semanaCheia && !d.especial) ? `
-              <span style="text-decoration:line-through;color:var(--texto-suave);
-                    font-weight:400;font-size:13px">$${REGRAS.PRECO_AVULSO}</span>
-              <span style="color:var(--sucesso)">$${REGRAS.PRECO_SEMANA}</span>`
-            : `$${Number(d.preco).toFixed(0)}`}
+          <div id="stepper-${d.dia}" style="flex-shrink:0">
+            ${this._stepperHTML(d, semanaCheia)}
           </div>
         </div>
       </div>`;
   },
 
-  _toggle(id) {
-    const dia = this._dias.find(d => d.id == id);
-    if (!dia || dia._passado) return;
-    if (this._sel.has(id)) this._sel.delete(id); else this._sel.add(id);
-    this._desenhar();
+  _stepperHTML(d, semanaCheia) {
+    const qty = this._qtd.get(d.dia) || 0;
+    const unit = d.especial ? REGRAS.PRECO_ESPECIAL
+                 : semanaCheia ? REGRAS.PRECO_SEMANA
+                 : REGRAS.PRECO_AVULSO;
+
+    let precoHTML;
+    if (qty === 0) {
+      precoHTML = `<div style="font-size:12px;color:var(--texto-suave);text-align:center;margin-top:4px">
+        $${d.especial ? REGRAS.PRECO_ESPECIAL : REGRAS.PRECO_AVULSO}/meal</div>`;
+    } else if (!d.especial && semanaCheia) {
+      precoHTML = `<div style="text-align:center;margin-top:4px;line-height:1.4">
+        <span style="text-decoration:line-through;color:var(--texto-suave);font-size:12px">
+          $${qty * REGRAS.PRECO_AVULSO}</span>
+        <span style="color:var(--sucesso);font-weight:700;font-size:14px;display:block">
+          $${qty * REGRAS.PRECO_SEMANA}</span>
+      </div>`;
+    } else {
+      precoHTML = `<div style="text-align:center;font-weight:700;font-size:14px;margin-top:4px">
+        $${qty * unit}</div>`;
+    }
+
+    const btnBase = "width:32px;height:32px;border-radius:50%;font-size:16px;font-weight:700;" +
+                    "cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center";
+    const btnMenos = qty === 0
+      ? `${btnBase};border:2px solid var(--borda);background:#fff;color:var(--texto-suave);opacity:0.5`
+      : `${btnBase};border:2px solid var(--primaria);background:#fff;color:var(--primaria)`;
+    const btnMais = qty >= 3
+      ? `${btnBase};border:2px solid var(--borda);background:#f5f5f5;color:var(--texto-suave);opacity:0.5`
+      : `${btnBase};border:2px solid var(--primaria);background:var(--primaria);color:#fff`;
+
+    return `
+      <div style="display:flex;flex-direction:column;align-items:center">
+        <div style="display:flex;align-items:center;gap:6px">
+          <button onclick="event.stopPropagation();Pedido._setQtd('${d.dia}',-1)"
+                  ${qty === 0 ? "disabled" : ""}
+                  style="${btnMenos}">−</button>
+          <span style="min-width:20px;text-align:center;font-weight:700;font-size:18px">${qty}</span>
+          <button onclick="event.stopPropagation();Pedido._setQtd('${d.dia}',+1)"
+                  ${qty >= 3 ? "disabled" : ""}
+                  style="${btnMais}">+</button>
+        </div>
+        ${precoHTML}
+      </div>`;
   },
 
-  /* Calcula o total aplicando a regra do desconto de semana */
+  _setQtd(iso, delta) {
+    const atual = this._qtd.get(iso) || 0;
+    const novo = Math.max(0, Math.min(3, atual + delta));
+    if (novo === atual) return;
+    this._qtd.set(iso, novo);
+
+    const prevSemanaCheia = this._semanaCheia;
+    const { semanaCheia } = this._calcular();
+    this._semanaCheia = semanaCheia;
+
+    if (semanaCheia !== prevSemanaCheia) {
+      // semana cheia mudou: atualiza todos os steppers
+      for (const d of this._dias) {
+        const el = document.getElementById("stepper-" + d.dia);
+        if (el) el.innerHTML = this._stepperHTML(d, semanaCheia);
+        const card = document.getElementById("card-" + d.dia);
+        if (card) {
+          const q = this._qtd.get(d.dia) || 0;
+          card.style.border = q > 0 ? "2px solid var(--primaria)" : "";
+          card.style.opacity = q > 0 ? "1" : "0.55";
+        }
+      }
+    } else {
+      // atualiza apenas o card alterado
+      const d = this._dias.find(x => x.dia === iso);
+      if (d) {
+        const el = document.getElementById("stepper-" + iso);
+        if (el) el.innerHTML = this._stepperHTML(d, semanaCheia);
+        const card = document.getElementById("card-" + iso);
+        if (card) {
+          card.style.border = novo > 0 ? "2px solid var(--primaria)" : "";
+          card.style.opacity = novo > 0 ? "1" : "0.55";
+        }
+      }
+    }
+
+    this._atualizarResumo();
+  },
+
   _calcular() {
-    const escolhidos = this._dias.filter(d => this._sel.has(d.id));
-    const disponiveis = this._dias.filter(d => !d._passado);
-    // desconto somente quando TODOS os dias da semana (exceto fechados pelo admin) sao pedidos
+    const escolhidos = this._dias.filter(d => (this._qtd.get(d.dia) || 0) > 0);
     const semanaCheia = this._dias.length > 0
-      && escolhidos.length === this._dias.length;
+      && this._dias.every(d => (this._qtd.get(d.dia) || 0) > 0);
 
     let total = 0;
     for (const d of escolhidos) {
-      if (d.especial) {
-        total += REGRAS.PRECO_ESPECIAL;            // special sempre $15
-      } else if (semanaCheia) {
-        total += REGRAS.PRECO_SEMANA;              // $12 na semana cheia
-      } else {
-        total += REGRAS.PRECO_AVULSO;              // $14 avulso
-      }
+      const qty = this._qtd.get(d.dia) || 1;
+      if (d.especial)       total += qty * REGRAS.PRECO_ESPECIAL;
+      else if (semanaCheia) total += qty * REGRAS.PRECO_SEMANA;
+      else                  total += qty * REGRAS.PRECO_AVULSO;
     }
     return { escolhidos, semanaCheia, total };
   },
@@ -341,12 +407,14 @@ const Pedido = {
         Select at least one day</div>`;
       return;
     }
+    const totalMeals = escolhidos.reduce((s, d) => s + (this._qtd.get(d.dia) || 1), 0);
     const temAtrasado = escolhidos.some(d => d._atrasado);
-    // economia = quanto pagaria tudo avulso - quanto paga agora
     let economia = 0;
     if (semanaCheia) {
-      const avulso = escolhidos.reduce((s,d) =>
-        s + (d.especial ? REGRAS.PRECO_ESPECIAL : REGRAS.PRECO_AVULSO), 0);
+      const avulso = escolhidos.reduce((s, d) => {
+        const qty = this._qtd.get(d.dia) || 1;
+        return s + qty * (d.especial ? REGRAS.PRECO_ESPECIAL : REGRAS.PRECO_AVULSO);
+      }, 0);
       economia = avulso - total;
     }
     box.innerHTML = `
@@ -354,7 +422,7 @@ const Pedido = {
         <div>
           <div style="font-weight:700;font-size:18px">$${total.toFixed(0)}</div>
           <div style="font-size:12px;color:var(--texto-suave)">
-            ${escolhidos.length} day(s)${semanaCheia ? " · full week 🎉" : ""}</div>
+            ${totalMeals} meal${totalMeals !== 1 ? "s" : ""} · ${escolhidos.length} day${escolhidos.length !== 1 ? "s" : ""}${semanaCheia ? " · full week 🎉" : ""}</div>
           ${economia > 0 ? `<div style="font-size:12px;color:var(--sucesso);font-weight:600">
             You save $${economia}!</div>` : ""}
         </div>
@@ -379,7 +447,7 @@ const Pedido = {
         <div style="display:flex;justify-content:space-between;font-weight:700;font-size:18px">
           <span>Total</span><span>$${total.toFixed(0)}</span></div>
         <div style="font-size:13px;color:var(--texto-suave);margin-top:4px">
-          ${escolhidos.length} meal(s)</div>
+          ${escolhidos.reduce((s,d) => s + (this._qtd.get(d.dia)||1), 0)} meal(s)</div>
       </div>
 
       <button class="btn" id="cash-link" style="width:100%;margin-bottom:16px;
@@ -489,24 +557,27 @@ const Pedido = {
     const cliente = Auth._cliente;
     if (!cliente) { erro.textContent = "Session error. Please log in again."; btn.disabled = false; if (btn2) btn2.disabled = false; return; }
 
-    // cria um pedido por dia de consumo (facilita a producao por dia)
+    const { semanaCheia } = this._calcular();
     let falhou = false;
     for (const d of escolhidos) {
+      const qty = this._qtd.get(d.dia) || 1;
+      const unit = d.especial ? REGRAS.PRECO_ESPECIAL
+                   : semanaCheia ? REGRAS.PRECO_SEMANA
+                   : REGRAS.PRECO_AVULSO;
       const { data: ped, error } = await sb.from("pedidos").insert({
         cliente_id: cliente.id,
         dia_consumo: d.dia,
-        total: Number(d.especial ? REGRAS.PRECO_ESPECIAL
-              : (escolhidos.length === this._dias.length
-                 ? REGRAS.PRECO_SEMANA : REGRAS.PRECO_AVULSO)),
-        status_pagamento: statusPag,       // "pago" (cliente marcou) ou "pendente"
-        metodo_pagamento: metodo,          // CashApp / Venmo / Zelle / Apple Cash / null
+        total: qty * unit,
+        quantidade: qty,
+        status_pagamento: statusPag,
+        metodo_pagamento: metodo,
         precisa_aprovacao: d._atrasado,
         status_aprovacao: d._atrasado ? "pendente" : null
       }).select().single();
 
       if (error) { falhou = true; break; }
       await sb.from("pedido_itens").insert({
-        pedido_id: ped.id, menu_item_id: d.id, preco: ped.total
+        pedido_id: ped.id, menu_item_id: d.id, preco: unit
       });
     }
 

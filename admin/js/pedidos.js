@@ -64,16 +64,17 @@ const Pedidos = {
       return;
     }
 
-    // conta por nome de marmita (total e quantos pagos)
+    // conta por nome de marmita (total e quantos pagos), respeitando quantidade
     const cont = {};
     for (const p of doDia) {
       const nome = this._nomeMarmita(p);
+      const qty = p.quantidade || 1;
       const pago = (p.status_pagamento === "pago" || p.status_pagamento === "confirmado");
       if (!cont[nome]) cont[nome] = { total: 0, pagos: 0 };
-      cont[nome].total++;
-      if (pago) cont[nome].pagos++;
+      cont[nome].total += qty;
+      if (pago) cont[nome].pagos += qty;
     }
-    const totalGeral = doDia.length;
+    const totalGeral = doDia.reduce((s, p) => s + (p.quantidade || 1), 0);
 
     el.innerHTML = `
       <div class="card" style="border:2px solid var(--primaria)">
@@ -151,7 +152,7 @@ const Pedidos = {
           <div style="flex:1">
             <div style="font-weight:700">${this._esc(cliente)}</div>
             <div style="font-size:13px;color:var(--texto-suave)">
-              ${this._esc(marmita)} · ${this._fmtData(p.dia_consumo)} · $${Number(p.total).toFixed(0)}</div>
+              ${p.quantidade > 1 ? p.quantidade + "× " : ""}${this._esc(marmita)} · ${this._fmtData(p.dia_consumo)} · $${Number(p.total).toFixed(0)}</div>
             <div style="margin-top:4px">${this._statusLabel(p)} ${metodo ?
               `<span style="font-size:12px;color:var(--texto-suave)">${metodo}</span>` : ""}</div>
           </div>
