@@ -278,9 +278,8 @@ const Pedido = {
 
     return `
       <div class="card" id="card-${d.dia}" style="margin-bottom:10px;
-           transition:border .15s,opacity .15s;
-           ${qty > 0 ? "border:2px solid var(--primaria)" : ""};
-           ${qty === 0 ? "opacity:0.55" : ""}">
+           transition:border .15s;
+           ${qty > 0 ? "border:2px solid var(--primaria)" : ""}">
         <div style="display:flex;align-items:center;gap:8px">
           <div style="flex:1">
             <div style="font-weight:600">${nomeDia} · ${this._diaMes(dt)}
@@ -364,7 +363,6 @@ const Pedido = {
         if (card) {
           const q = this._qtd.get(d.dia) || 0;
           card.style.border = q > 0 ? "2px solid var(--primaria)" : "";
-          card.style.opacity = q > 0 ? "1" : "0.55";
         }
       }
     } else {
@@ -376,7 +374,6 @@ const Pedido = {
         const card = document.getElementById("card-" + iso);
         if (card) {
           card.style.border = novo > 0 ? "2px solid var(--primaria)" : "";
-          card.style.opacity = novo > 0 ? "1" : "0.55";
         }
       }
     }
