@@ -42,7 +42,36 @@ const Menu = {
       return;
     }
 
-    el.innerHTML = this._semanas.map(s => `
+    const hojeIso  = new Date().toISOString().slice(0, 10);
+    const atual    = this._semanas.filter(s => s.semana_inicio <= hojeIso && s.semana_fim >= hojeIso);
+    const futuras  = this._semanas.filter(s => s.semana_inicio > hojeIso).reverse(); // nearest first
+    const passadas = this._semanas.filter(s => s.semana_fim < hojeIso);              // most recent first
+
+    const cab = (titulo, primeiro) => `
+      <div style="font-size:13px;font-weight:700;text-transform:uppercase;
+                  letter-spacing:.5px;color:var(--texto-suave);
+                  margin:${primeiro ? "0" : "16px"} 0 8px">${titulo}</div>`;
+
+    let html = cab("This Week", true);
+    html += atual.length
+      ? atual.map(s => this._cardSemana(s)).join("")
+      : this._aviso("No week scheduled for this week.");
+
+    if (futuras.length) {
+      html += cab("Future Weeks");
+      html += futuras.map(s => this._cardSemana(s)).join("");
+    }
+
+    if (passadas.length) {
+      html += cab("Past Weeks");
+      html += passadas.map(s => this._cardSemana(s)).join("");
+    }
+
+    el.innerHTML = html;
+  },
+
+  _cardSemana(s) {
+    return `
       <div class="card" style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
         <span style="flex:1;font-weight:600">${this._intervalo(s.semana_inicio, s.semana_fim)}</span>
         <button class="btn-secundario"
@@ -51,7 +80,7 @@ const Menu = {
         <button class="btn-icone excluir" title="Delete week"
                 style="flex-shrink:0"
                 onclick="event.stopPropagation();Menu._excluirSemana('${s.id}')">&#128465;</button>
-      </div>`).join("");
+      </div>`;
   },
 
   /* Cria uma semana nova: pede a data da segunda-feira (Monday) */
