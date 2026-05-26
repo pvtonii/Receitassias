@@ -145,8 +145,17 @@ const Menu = {
       <h2 style="margin-bottom:16px">${diaNome} meal</h2>
 
       <label>Meal name</label>
-      <input class="campo" id="m-nome" type="text"
-             placeholder="e.g. Grilled Chicken Bowl" value="${this._esc(nome)}">
+      <div style="display:flex;gap:8px;align-items:flex-start;margin:6px 0 14px">
+        <input class="campo" id="m-nome" type="text"
+               placeholder="e.g. Grilled Chicken Bowl" value="${this._esc(nome)}"
+               style="flex:1;min-width:0;margin:0">
+        <button class="btn-secundario" id="btn-traduzir"
+                title="Traduzir PT → EN"
+                style="height:48px;padding:0 12px;flex-shrink:0;font-size:18px">
+          🌐</button>
+      </div>
+      <div id="traduzir-status" style="font-size:12px;color:var(--texto-suave);
+           margin-top:-10px;margin-bottom:10px;min-height:16px"></div>
 
       <label style="display:flex;align-items:center;gap:10px;margin:10px 0 16px;cursor:pointer">
         <input type="checkbox" id="m-especial" ${especial ? "checked" : ""}
@@ -175,10 +184,37 @@ const Menu = {
 
     document.getElementById("m-salvar")
       .addEventListener("click", () => this._salvarDia(menuId, iso, itemId));
+    document.getElementById("btn-traduzir")
+      .addEventListener("click", () => this._traduzir());
     if (itemId) {
       document.getElementById("m-remover")
         .addEventListener("click", () => this._removerDia(menuId, itemId));
     }
+  },
+
+  async _traduzir() {
+    const input  = document.getElementById("m-nome");
+    const status = document.getElementById("traduzir-status");
+    const btn    = document.getElementById("btn-traduzir");
+    const texto  = input.value.trim();
+    if (!texto) { status.textContent = "Digite o nome primeiro."; return; }
+
+    btn.disabled = true;
+    status.textContent = "Traduzindo...";
+    try {
+      const url = "https://api.mymemory.translated.net/get?q="
+        + encodeURIComponent(texto) + "&langpair=pt|en";
+      const res  = await fetch(url);
+      const json = await res.json();
+      const trad = json?.responseData?.translatedText;
+      if (!trad) throw new Error("sem resposta");
+      input.value = trad;
+      status.textContent = "✓ Traduzido de PT → EN";
+      setTimeout(() => { status.textContent = ""; }, 3000);
+    } catch {
+      status.textContent = "Erro ao traduzir. Verifique a conexão.";
+    }
+    btn.disabled = false;
   },
 
   async _salvarDia(menuId, iso, itemId) {
