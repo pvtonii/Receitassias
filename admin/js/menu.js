@@ -76,8 +76,8 @@ const Menu = {
     const container = document.getElementById("app");
     container.innerHTML = `<p style="color:var(--texto-suave)">Loading week...</p>`;
 
-    // carrega ingredientes (uma vez) e os itens ja salvos desta semana
-    if (!this._ingredientes.length) await this._carregarIngredientes();
+    // sempre recarrega ingredientes para refletir adicoes e edicoes recentes
+    await this._carregarIngredientes();
     const itens = await this._itensDaSemana(menuId);
 
     container.innerHTML = `
