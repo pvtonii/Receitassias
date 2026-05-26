@@ -132,8 +132,8 @@ const Menu = {
               </div>` : ""}
           </div>
           <div style="display:flex;gap:6px;align-items:center;flex-shrink:0">
-            <button class="btn-icone" title="No meal this day"
-                    style="color:var(--erro);font-size:22px"
+            <button class="btn btn-perigo" title="No meal this day"
+                    style="width:40px;height:40px;padding:0;font-size:18px;flex-shrink:0"
                     onclick="Menu._fecharDia('${menuId}','${iso}',${item ? `'${item.id}'` : "null"})">✕</button>
             <button class="btn-secundario"
                     style="padding:0 14px;height:40px;min-height:0"
