@@ -1,6 +1,6 @@
 /* ============================================
    APP CLIENTE - SETOR: My Orders
-   Lista todos os pedidos do cliente.
+   Lista todos os pedidos do cliente agrupados por semana.
    Permite cancelar pedidos nao pagos ate as 19:00 do dia anterior.
 ============================================ */
 
@@ -31,11 +31,39 @@ const MeusPedidos = {
       el.innerHTML = this._aviso("No orders yet.");
       return;
     }
-    el.innerHTML = data.map(p => this._card(p)).join("");
+
+    // agrupa por semana (segunda-feira da semana de cada pedido)
+    const grupos = {};
+    for (const p of data) {
+      const seg = this._segundaDaSemana(p.dia_consumo);
+      if (!grupos[seg]) grupos[seg] = [];
+      grupos[seg].push(p);
+    }
+
+    const hojeIso = new Date().toISOString().slice(0, 10);
+    const cab = (titulo, primeiro) => `
+      <div style="font-size:13px;font-weight:700;text-transform:uppercase;
+                  letter-spacing:.5px;color:var(--texto-suave);
+                  margin:${primeiro ? "0" : "16px"} 0 8px">${titulo}</div>`;
+
+    let html = "";
+    const semanas = Object.keys(grupos).sort().reverse(); // mais recente primeiro
+    semanas.forEach((seg, i) => {
+      const fim = this._sexta(seg);
+      const isThisWeek = seg <= hojeIso && hojeIso <= fim;
+      const isFuture   = seg > hojeIso;
+      const label = isThisWeek ? "This Week"
+                  : isFuture   ? this._intervalo(seg, fim)
+                  : this._intervalo(seg, fim);
+      html += cab(label, i === 0);
+      html += grupos[seg].map(p => this._card(p)).join("");
+    });
+
+    el.innerHTML = html;
   },
 
   _card(p) {
-    const item = p.pedido_itens && p.pedido_itens[0] && p.pedido_itens[0].menu_itens;
+    const item    = p.pedido_itens && p.pedido_itens[0] && p.pedido_itens[0].menu_itens;
     const nome    = item ? item.nome    : "Meal";
     const especial = item ? item.especial : false;
     const qty  = p.quantidade || 1;
@@ -83,6 +111,27 @@ const MeusPedidos = {
     this._carregar();
   },
 
+  // retorna ISO da segunda-feira da semana de um dia
+  _segundaDaSemana(iso) {
+    const d = new Date(iso + "T00:00:00");
+    const day = d.getDay(); // 0=dom, 1=seg...
+    const diff = day === 0 ? -6 : 1 - day;
+    d.setDate(d.getDate() + diff);
+    return d.toISOString().slice(0, 10);
+  },
+  // retorna ISO da sexta da semana (seg + 4)
+  _sexta(segIso) {
+    const d = new Date(segIso + "T00:00:00");
+    d.setDate(d.getDate() + 4);
+    return d.toISOString().slice(0, 10);
+  },
+  _intervalo(ini, fim) {
+    const a = new Date(ini + "T00:00:00"), b = new Date(fim + "T00:00:00");
+    const m = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    if (a.getMonth() === b.getMonth())
+      return `${m[a.getMonth()]} ${a.getDate()}–${b.getDate()}`;
+    return `${m[a.getMonth()]} ${a.getDate()} – ${m[b.getMonth()]} ${b.getDate()}`;
+  },
   _fmtData(iso) {
     const d = new Date(iso + "T00:00:00");
     const dias = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
