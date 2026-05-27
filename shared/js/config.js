@@ -37,7 +37,7 @@ const REGRAS = {
   PRECO_ESPECIAL: 15,
   DIAS_SEMANA: 5,
   PUSHOVER_TOKEN: "ajs5g4qq3qccrm1kj8mfd77ziavk6u",
-  PUSHOVER_USER:  "u92gpvc1dzwmj67tur2tcj76t2k66f",
+  PUSHOVER_USER:  "g8f2gvhka7zzxzp3ui6kib238e32zv",
   PAGAMENTO: {
     cashapp:        "$TassiaOliveira1",      // exibido pro cliente
     cashapp_tag:    "TassiaOliveira1",        // usado no link cash.app/$tag/valor
