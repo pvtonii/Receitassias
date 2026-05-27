@@ -169,8 +169,9 @@ const Pedido = {
     const el = document.getElementById("ord-conteudo");
     this._qtd = new Map();
 
-    // pega a semana mais proxima (que ainda tem dias no futuro)
     const hojeIso = this._hojeCentralIso();
+
+    // 1) menu header — query leve, sempre fresca
     const { data: menus, error } = await sb.from("menus")
       .select("*").gte("semana_fim", hojeIso)
       .order("semana_inicio", { ascending: true }).limit(1);
@@ -182,22 +183,53 @@ const Pedido = {
     }
     this._semana = menus[0];
 
-    const { data: itens } = await sb.from("menu_itens")
-      .select("*").eq("menu_id", this._semana.id).order("dia", { ascending: true });
+    // 2) dias + ingredientes: tenta cache (6h), senao busca tudo num join so
+    const CACHE_KEY = "rt_menu_" + this._semana.id;
+    const CACHE_TTL = 6 * 60 * 60 * 1000;
+    let diasCache = null;
+    try {
+      const raw = localStorage.getItem(CACHE_KEY);
+      if (raw) {
+        const c = JSON.parse(raw);
+        if (Date.now() - c.ts < CACHE_TTL) diasCache = c.dias;
+      }
+    } catch (e) {}
 
-    // anexa info de ingredientes e de prazo a cada dia (ignora dias fechados)
-    this._dias = [];
-    for (const it of (itens || [])) {
-      if (it.fechado) continue;
-      const { data: links } = await sb.from("menu_item_ingredientes")
-        .select("ingredientes(nome)").eq("menu_item_id", it.id);
-      it._ings = (links || []).map(l => l.ingredientes && l.ingredientes.nome).filter(Boolean);
-      it._passado  = this._passouBloqueio(it.dia);           // 17:30+ → bloqueia
-      it._atrasado = !it._passado && this._passouCorte(it.dia); // 17:00-17:30 → aviso
-      this._dias.push(it);
+    if (diasCache) {
+      this._dias = diasCache;
+      for (const d of this._dias) {
+        d._passado  = this._passouBloqueio(d.dia);
+        d._atrasado = !d._passado && this._passouCorte(d.dia);
+      }
+    } else {
+      const { data: itens } = await sb.from("menu_itens")
+        .select("*, menu_item_ingredientes(ingredientes(nome))")
+        .eq("menu_id", this._semana.id)
+        .order("dia", { ascending: true });
+
+      this._dias = [];
+      for (const it of (itens || [])) {
+        if (it.fechado) continue;
+        it._ings = (it.menu_item_ingredientes || [])
+          .map(l => l.ingredientes && l.ingredientes.nome).filter(Boolean);
+        it._passado  = this._passouBloqueio(it.dia);
+        it._atrasado = !it._passado && this._passouCorte(it.dia);
+        this._dias.push(it);
+      }
+
+      // salva no cache sem os campos calculados de runtime
+      try {
+        const paraCache = this._dias.map(({ _passado, _atrasado, ...rest }) => rest);
+        localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), dias: paraCache }));
+        // limpa caches de semanas anteriores
+        for (let i = localStorage.length - 1; i >= 0; i--) {
+          const k = localStorage.key(i);
+          if (k && k.startsWith("rt_menu_") && k !== CACHE_KEY) localStorage.removeItem(k);
+        }
+      } catch (e) {}
     }
 
-    // busca pendencias do cliente p/ exibir aviso amigavel no topo (nao bloqueia)
+    // 3) pendentes — sempre fresco (muda com frequencia)
     this._pendentes = [];
     const cliente = Auth._cliente;
     if (cliente) {
