@@ -21,6 +21,10 @@ DELETE FROM menu_itens;
 -- 5. menus
 DELETE FROM menus;
 
+-- 6. Resetar estatisticas dos clientes (total_gasto, total_marmitas, ultima_compra)
+UPDATE clientes SET total_gasto = 0, total_marmitas = 0, ultima_compra = NULL
+WHERE NOT is_admin;
+
 -- ============================================
 -- Clientes, ingredientes e cupons sao mantidos.
 -- Se quiser apagar ingredientes tambem, rode:
