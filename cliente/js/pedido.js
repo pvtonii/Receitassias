@@ -679,14 +679,17 @@ const Pedido = {
         const dt = new Date(d.dia + "T00:00:00");
         return ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][dt.getDay()];
       }).join(", ");
+      const isPago = statusPag === "pago";
       fetch("https://api.pushover.net/1/messages.json", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           token:   REGRAS.PUSHOVER_TOKEN,
           user:    REGRAS.PUSHOVER_USER,
-          title:   "New Order 🍱",
-          message: `${cliente.nome} · ${totalMeals} meal(s) · $${total} · ${dias}`,
+          title:   isPago ? "Payment received 💰" : "New Order 🍱",
+          message: isPago
+            ? `${cliente.nome} · $${total} · via ${metodo}`
+            : `${cliente.nome} · ${totalMeals} meal(s) · $${total} · ${dias}`,
           priority: 1
         })
       });
