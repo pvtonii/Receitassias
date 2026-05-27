@@ -46,9 +46,9 @@ const Pedido = {
               background:var(--sucesso)">Pay $${total.toFixed(0)} with CashApp</button>
 
       <p style="font-size:14px;margin-bottom:8px">Or pay with:</p>
-      <div class="card" style="margin-bottom:16px">
+      <div class="card" style="margin-bottom:16px;padding-top:0">
         ${this._linhaPag("Zelle", pix.zelle, pix.zelle_nome)}
-        ${this._linhaPag("Apple Cash", pix.applecash)}
+        ${this._linhaPag("Apple Cash", pix.applecash, null, true)}
       </div>
 
       <p style="font-size:14px;margin-bottom:8px">Which one did you use?</p>
@@ -116,9 +116,9 @@ const Pedido = {
               background:var(--sucesso)">Pay $${total.toFixed(0)} with CashApp</button>
 
       <p style="font-size:14px;margin-bottom:8px">Or pay with:</p>
-      <div class="card" style="margin-bottom:16px">
+      <div class="card" style="margin-bottom:16px;padding-top:0">
         ${this._linhaPag("Zelle", pix.zelle, pix.zelle_nome)}
-        ${this._linhaPag("Apple Cash", pix.applecash)}
+        ${this._linhaPag("Apple Cash", pix.applecash, null, true)}
       </div>
 
       <p style="font-size:14px;margin-bottom:8px">Which one did you use?</p>
@@ -537,9 +537,9 @@ const Pedido = {
         Pay $${total.toFixed(0)} with CashApp</button>
 
       <p style="font-size:14px;margin-bottom:8px">Or pay with:</p>
-      <div class="card" style="margin-bottom:16px">
+      <div class="card" style="margin-bottom:16px;padding-top:0">
         ${this._linhaPag("Zelle", pix.zelle, pix.zelle_nome)}
-        ${this._linhaPag("Apple Cash", pix.applecash)}
+        ${this._linhaPag("Apple Cash", pix.applecash, null, true)}
       </div>
 
       ${temAtrasado ? `<div class="card" style="border-color:var(--erro);color:var(--erro);
@@ -592,10 +592,10 @@ const Pedido = {
         this._salvarPedido(escolhidos, total, temAtrasado, "pendente", null));
   },
 
-  _linhaPag(nome, valor, subtexto) {
+  _linhaPag(nome, valor, subtexto, ultimo = false) {
     const valLimpo = this._esc(valor).replace(/'/g, "");
     return `
-      <div style="padding:8px 0;border-bottom:1px solid var(--borda)">
+      <div style="padding:8px 0${ultimo ? "" : ";border-bottom:1px solid var(--borda)"}">
         <div style="display:flex;align-items:center;gap:8px">
           <div style="flex:1"><strong>${nome}:</strong> ${this._esc(valor)}</div>
           <button class="btn-icone copy-btn" title="Copy"

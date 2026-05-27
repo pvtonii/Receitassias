@@ -52,7 +52,7 @@ const Profile = {
             Install ReceiTassia's as an app on your iPhone for quick access — no App Store needed.</p>
           <div style="display:flex;flex-direction:column;gap:14px;font-size:14px">
             <div style="display:flex;align-items:flex-start;gap:12px">
-              <div style="font-size:24px;line-height:1">1</div>
+              <div style="font-size:24px;line-height:1;width:20px;text-align:center;flex-shrink:0">1</div>
               <div>
                 <div style="font-weight:700">Open in Safari</div>
                 <div style="font-size:13px;color:var(--texto-suave)">
@@ -60,7 +60,7 @@ const Profile = {
               </div>
             </div>
             <div style="display:flex;align-items:flex-start;gap:12px">
-              <div style="font-size:24px;line-height:1">2</div>
+              <div style="font-size:24px;line-height:1;width:20px;text-align:center;flex-shrink:0">2</div>
               <div>
                 <div style="font-weight:700">Tap the Share button <span style="font-size:18px">⎙</span></div>
                 <div style="font-size:13px;color:var(--texto-suave)">
@@ -68,7 +68,7 @@ const Profile = {
               </div>
             </div>
             <div style="display:flex;align-items:flex-start;gap:12px">
-              <div style="font-size:24px;line-height:1">3</div>
+              <div style="font-size:24px;line-height:1;width:20px;text-align:center;flex-shrink:0">3</div>
               <div>
                 <div style="font-weight:700">Tap "Add to Home Screen"</div>
                 <div style="font-size:13px;color:var(--texto-suave)">
@@ -76,7 +76,7 @@ const Profile = {
               </div>
             </div>
             <div style="display:flex;align-items:flex-start;gap:12px">
-              <div style="font-size:24px;line-height:1">4</div>
+              <div style="font-size:24px;line-height:1;width:20px;text-align:center;flex-shrink:0">4</div>
               <div>
                 <div style="font-weight:700">Tap "Add" (top right)</div>
                 <div style="font-size:13px;color:var(--texto-suave)">
