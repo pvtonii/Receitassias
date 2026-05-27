@@ -131,8 +131,8 @@ const Dashboard = {
         const ps = semHist[ch];
         const fim = this._sexta(ch);
         const label = this._intervalo(ch, fim);
-        const totalSem = ps.reduce((s, p) => s + Number(p.total), 0);
-        const qtdSem   = ps.reduce((s, p) => s + (p.quantidade || 1), 0);
+        const totalSem = ps.filter(p => !p.cancelado).reduce((s, p) => s + Number(p.total), 0);
+        const qtdSem   = ps.filter(p => !p.cancelado).reduce((s, p) => s + (p.quantidade || 1), 0);
         html += `
           <details${i === 0 ? " open" : ""} style="margin-bottom:8px">
             <summary style="list-style:none;cursor:pointer;display:flex;
