@@ -6,8 +6,8 @@
    suba o numero abaixo. Os dois footers leem daqui.
 ============================================ */
 
-const APP_VERSION = "1.24.5";
-const APP_DATA    = "2026-05-26";
+const APP_VERSION = "1.24.6";
+const APP_DATA    = "2026-05-27";
 
 /* ============================================
    CONEXAO SUPABASE

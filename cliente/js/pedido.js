@@ -84,6 +84,8 @@ const Pedido = {
         .in("id", ids);
       btn.disabled = false;
       if (e) { document.getElementById("pay-erro").textContent = "Error: " + e.message; return; }
+      this._pushover("Payment received 💰",
+        `${Auth._cliente ? Auth._cliente.nome : "Client"} · $${total.toFixed(0)} · via ${this._metodoSel}`);
       abrirSetor("dashboard");
     });
   },
@@ -153,6 +155,8 @@ const Pedido = {
         .eq("id", pedidoId);
       btn.disabled = false;
       if (e) { document.getElementById("pay-erro").textContent = "Error: " + e.message; return; }
+      this._pushover("Payment received 💰",
+        `${Auth._cliente ? Auth._cliente.nome : "Client"} · $${total.toFixed(0)} · via ${this._metodoSel}`);
       abrirSetor("dashboard");
     });
   },
@@ -592,6 +596,19 @@ const Pedido = {
         this._salvarPedido(escolhidos, total, temAtrasado, "pendente", null));
   },
 
+  _pushover(title, message) {
+    try {
+      fetch("https://api.pushover.net/1/messages.json", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          token: REGRAS.PUSHOVER_TOKEN, user: REGRAS.PUSHOVER_USER,
+          title, message, priority: 1
+        })
+      });
+    } catch(e) {}
+  },
+
   _linhaPag(nome, valor, subtexto, ultimo = false) {
     const valLimpo = this._esc(valor).replace(/'/g, "");
     return `
@@ -672,28 +689,18 @@ const Pedido = {
     btn.disabled = false; if (btn2) btn2.disabled = false;
     if (falhou) { erro.textContent = "Error placing order. Please try again."; return; }
 
-    // notifica o admin via Pushover (fire-and-forget, nao bloqueia o fluxo)
-    try {
-      const totalMeals = escolhidos.reduce((s, d) => s + (this._qtd.get(d.dia) || 1), 0);
-      const dias = escolhidos.map(d => {
-        const dt = new Date(d.dia + "T00:00:00");
-        return ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][dt.getDay()];
-      }).join(", ");
-      const isPago = statusPag === "pago";
-      fetch("https://api.pushover.net/1/messages.json", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          token:   REGRAS.PUSHOVER_TOKEN,
-          user:    REGRAS.PUSHOVER_USER,
-          title:   isPago ? "Payment received 💰" : "New Order 🍱",
-          message: isPago
-            ? `${cliente.nome} · $${total} · via ${metodo}`
-            : `${cliente.nome} · ${totalMeals} meal(s) · $${total} · ${dias}`,
-          priority: 1
-        })
-      });
-    } catch(e) {}
+    const totalMeals = escolhidos.reduce((s, d) => s + (this._qtd.get(d.dia) || 1), 0);
+    const dias = escolhidos.map(d => {
+      const dt = new Date(d.dia + "T00:00:00");
+      return ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][dt.getDay()];
+    }).join(", ");
+    const isPago = statusPag === "pago";
+    this._pushover(
+      isPago ? "Payment received 💰" : "New Order 🍱",
+      isPago
+        ? `${cliente.nome} · $${total} · via ${metodo}`
+        : `${cliente.nome} · ${totalMeals} meal(s) · $${total} · ${dias}`
+    );
 
     document.getElementById("app").innerHTML = `
       <div class="card" style="text-align:center;margin-top:40px">
