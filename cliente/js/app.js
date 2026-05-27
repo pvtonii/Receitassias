@@ -4,9 +4,10 @@
 ============================================ */
 
 const SETORES = [
-  { id: "dashboard", rotulo: "Home", ico: "🏠", modulo: () => Dashboard },
-  { id: "pedido",    rotulo: "Order",  ico: "🛒", modulo: () => Pedido },
-  { id: "profile",   rotulo: "Profile", ico: "👤", modulo: () => Profile },
+  { id: "dashboard",    rotulo: "Home",      ico: "🏠", modulo: () => Dashboard },
+  { id: "pedido",       rotulo: "Order",     ico: "🛒", modulo: () => Pedido },
+  { id: "meus-pedidos", rotulo: "My Orders", ico: "📋", modulo: () => MeusPedidos },
+  { id: "profile",      rotulo: "Profile",   ico: "👤", modulo: () => Profile },
 ];
 
 let SETOR_ATUAL = "dashboard";

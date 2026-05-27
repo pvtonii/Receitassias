@@ -17,11 +17,166 @@ const Pedidos = {
       <h2 style="margin-bottom:4px">Orders</h2>
       <p style="color:var(--texto-suave);font-size:14px;margin-bottom:16px">
         Production & payments.</p>
+      <button class="btn" id="btn-novo-pedido" style="width:100%;margin-bottom:18px">
+        + New order</button>
       <div id="ord-prod" style="margin-bottom:20px">Loading...</div>
       <div id="ord-filtros" style="margin-bottom:14px"></div>
       <div id="ord-lista"></div>`;
 
+    document.getElementById("btn-novo-pedido")
+      .addEventListener("click", () => this._novoForm());
+
     await this._carregar();
+  },
+
+  async _novoForm() {
+    const container = document.getElementById("app");
+    container.innerHTML = `<p style="color:var(--texto-suave)">Loading...</p>`;
+
+    const [cliRes, menusRes] = await Promise.all([
+      sb.from("clientes").select("id, nome, telefone").eq("is_admin", false).order("nome"),
+      sb.from("menus").select("*").order("semana_inicio", { ascending: false })
+    ]);
+    const clientes = cliRes.data || [];
+    const menus    = menusRes.data || [];
+    this._fClientes = clientes;
+    this._fMenus    = menus;
+    this._fQty      = 1;
+
+    container.innerHTML = `
+      <button class="btn-voltar"
+              onclick="Pedidos.render(document.getElementById('app'))">← Back</button>
+      <h2 style="margin-bottom:16px">New order</h2>
+
+      <label>Customer</label>
+      <select class="campo" id="f-cli">
+        <option value="">Select customer...</option>
+        ${clientes.map(c => `<option value="${c.id}">${this._esc(c.nome)} — ${this._fmtTel(c.telefone)}</option>`).join("")}
+        <option value="__walkin__">— Walk-in (no account) —</option>
+      </select>
+      <div id="f-walkin-area" style="display:none;margin-top:8px">
+        <input class="campo" id="f-walkin-nome" type="text"
+               placeholder="Customer name (walk-in)">
+      </div>
+
+      <label style="margin-top:14px">Week</label>
+      <select class="campo" id="f-semana">
+        <option value="">Select week...</option>
+        ${menus.map(m => `<option value="${m.id}">${this._fmtIntervalo(m.semana_inicio, m.semana_fim)}</option>`).join("")}
+      </select>
+
+      <label style="margin-top:14px">Day & meal</label>
+      <select class="campo" id="f-dia">
+        <option value="">Select week first...</option>
+      </select>
+
+      <label style="margin-top:14px">Quantity</label>
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:4px">
+        <button class="btn-secundario"
+                style="width:40px;height:40px;font-size:20px;padding:0;flex-shrink:0"
+                onclick="Pedidos._fQtyDelta(-1)">−</button>
+        <span id="f-qty-val" style="font-weight:700;font-size:20px;min-width:24px;text-align:center">1</span>
+        <button class="btn-secundario"
+                style="width:40px;height:40px;font-size:20px;padding:0;flex-shrink:0"
+                onclick="Pedidos._fQtyDelta(+1)">+</button>
+      </div>
+
+      <label style="margin-top:14px">Payment status</label>
+      <select class="campo" id="f-status">
+        <option value="pendente">Not paid yet</option>
+        <option value="pago">Already paid</option>
+      </select>
+      <div id="f-metodo-area" style="display:none;margin-top:8px">
+        <label>Payment method</label>
+        <select class="campo" id="f-metodo">
+          <option value="CashApp">CashApp</option>
+          <option value="Venmo">Venmo</option>
+          <option value="Zelle">Zelle</option>
+          <option value="Apple Cash">Apple Cash</option>
+        </select>
+      </div>
+
+      <div class="erro-msg" id="f-err" style="margin-top:10px"></div>
+      <button class="btn" id="f-salvar" style="width:100%;margin-top:4px">Save order</button>`;
+
+    document.getElementById("f-cli").addEventListener("change", e => {
+      document.getElementById("f-walkin-area").style.display =
+        e.target.value === "__walkin__" ? "block" : "none";
+    });
+    document.getElementById("f-semana").addEventListener("change", e =>
+      this._fCarregarDias(e.target.value));
+    document.getElementById("f-status").addEventListener("change", e => {
+      document.getElementById("f-metodo-area").style.display =
+        e.target.value === "pago" ? "block" : "none";
+    });
+    document.getElementById("f-salvar")
+      .addEventListener("click", () => this._fSalvar());
+  },
+
+  _fQtyDelta(delta) {
+    this._fQty = Math.max(1, Math.min(3, (this._fQty || 1) + delta));
+    const el = document.getElementById("f-qty-val");
+    if (el) el.textContent = this._fQty;
+  },
+
+  async _fCarregarDias(menuId) {
+    const sel = document.getElementById("f-dia");
+    if (!menuId) { sel.innerHTML = '<option value="">Select week first...</option>'; return; }
+    sel.innerHTML = '<option value="">Loading...</option>';
+    const { data } = await sb.from("menu_itens")
+      .select("id, dia, nome, preco, especial, fechado")
+      .eq("menu_id", menuId).eq("fechado", false)
+      .order("dia", { ascending: true });
+    const itens = data || [];
+    if (!itens.length) {
+      sel.innerHTML = '<option value="">No meals this week</option>';
+      return;
+    }
+    const nomes = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+    sel.innerHTML = '<option value="">Select day...</option>' +
+      itens.map(it => {
+        const d = new Date(it.dia + "T00:00:00");
+        const label = `${nomes[d.getDay()]} ${d.getMonth()+1}/${d.getDate()} — ${this._esc(it.nome || "(no meal)")}${it.especial ? " ★" : ""}`;
+        return `<option value="${it.id}" data-dia="${it.dia}" data-especial="${it.especial}">${label}</option>`;
+      }).join("");
+  },
+
+  async _fSalvar() {
+    const err  = document.getElementById("f-err");
+    const btn  = document.getElementById("f-salvar");
+    err.textContent = "";
+
+    const cliVal     = document.getElementById("f-cli").value;
+    const walkinNome = document.getElementById("f-walkin-nome")?.value.trim();
+    const diaEl      = document.getElementById("f-dia");
+    const opt        = diaEl.options[diaEl.selectedIndex];
+    const itemId     = diaEl.value;
+    const status     = document.getElementById("f-status").value;
+    const metodo     = status === "pago" ? document.getElementById("f-metodo").value : null;
+    const qty        = this._fQty || 1;
+
+    if (!cliVal) { err.textContent = "Select a customer."; return; }
+    if (cliVal === "__walkin__" && !walkinNome) { err.textContent = "Enter the walk-in name."; return; }
+    if (!itemId) { err.textContent = "Select a day."; return; }
+
+    const dia     = opt.dataset.dia;
+    const especial = opt.dataset.especial === "true";
+    const unit    = especial ? REGRAS.PRECO_ESPECIAL : REGRAS.PRECO_AVULSO;
+
+    btn.disabled = true;
+    const payload = {
+      dia_consumo: dia, total: qty * unit, quantidade: qty,
+      status_pagamento: status, metodo_pagamento: metodo,
+      precisa_aprovacao: false, status_aprovacao: null
+    };
+    if (cliVal === "__walkin__") payload.nome_avulso = walkinNome;
+    else payload.cliente_id = cliVal;
+
+    const { data: ped, error } = await sb.from("pedidos").insert(payload).select().single();
+    if (error) { btn.disabled = false; err.textContent = "Error: " + error.message; return; }
+
+    await sb.from("pedido_itens").insert({ pedido_id: ped.id, menu_item_id: itemId, preco: unit });
+    this.render(document.getElementById("app"));
   },
 
   async _carregar() {
@@ -139,7 +294,7 @@ const Pedidos = {
   },
 
   _cardPedido(p) {
-    const cliente = p.clientes ? p.clientes.nome : "Customer";
+    const cliente = p.clientes ? p.clientes.nome : (p.nome_avulso ? p.nome_avulso + " (walk-in)" : "Walk-in");
     const tel = p.clientes ? p.clientes.telefone : "";
     const marmita = this._nomeMarmita(p);
     const metodo = p.metodo_pagamento ? `via ${p.metodo_pagamento}` : "";
@@ -201,6 +356,18 @@ const Pedidos = {
   },
 
   /* ===== helpers ===== */
+  _fmtIntervalo(ini, fim) {
+    const a = new Date(ini + "T00:00:00"), b = new Date(fim + "T00:00:00");
+    const m = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    if (a.getMonth() === b.getMonth())
+      return `${m[a.getMonth()]} ${a.getDate()}–${b.getDate()}`;
+    return `${m[a.getMonth()]} ${a.getDate()} – ${m[b.getMonth()]} ${b.getDate()}`;
+  },
+  _fmtTel(t) {
+    const s = String(t || "").replace(/\D/g, "");
+    if (s.length === 10) return `(${s.slice(0,3)}) ${s.slice(3,6)}-${s.slice(6)}`;
+    return t || "";
+  },
   _nomeMarmita(p) {
     return (p.pedido_itens && p.pedido_itens[0] && p.pedido_itens[0].menu_itens)
       ? p.pedido_itens[0].menu_itens.nome : "Meal";
