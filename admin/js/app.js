@@ -10,7 +10,6 @@ const SETORES = [
   { id: "menu",         rotulo: "Menu",    ico: "🍱", modulo: () => Menu },
   { id: "ingredientes", rotulo: "Items",   ico: "🥕", modulo: () => Ingredientes },
   { id: "clientes",     rotulo: "Customers",ico: "👥", modulo: () => Clientes },
-  { id: "cupons",       rotulo: "Coupons",  ico: "🎟", modulo: () => Cupons },
 ];
 
 let SETOR_ATUAL = "dashboard";

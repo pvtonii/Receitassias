@@ -37,7 +37,55 @@ const Profile = {
         <div class="erro-msg" id="p-senha-erro"></div>
         <div id="p-senha-ok" style="color:var(--sucesso);font-size:14px;min-height:18px"></div>
         <button class="btn-secundario" id="p-trocar-senha" style="width:100%">Update password</button>
-      </div>`;
+      </div>
+
+      <details style="margin-top:16px">
+        <summary style="list-style:none;cursor:pointer;display:flex;align-items:center;
+                        justify-content:space-between;padding:12px 14px;
+                        background:var(--card);border:1px solid var(--borda);
+                        border-radius:var(--raio);font-size:14px">
+          <span style="font-weight:700">📱 Add to Home Screen</span>
+          <span style="color:var(--texto-suave);font-size:13px">tap for steps ›</span>
+        </summary>
+        <div class="card" style="margin-top:8px">
+          <p style="font-size:14px;color:var(--texto-suave);margin-bottom:14px">
+            Install ReceiTassia's as an app on your iPhone for quick access — no App Store needed.</p>
+          <div style="display:flex;flex-direction:column;gap:14px;font-size:14px">
+            <div style="display:flex;align-items:flex-start;gap:12px">
+              <div style="font-size:24px;line-height:1">1</div>
+              <div>
+                <div style="font-weight:700">Open in Safari</div>
+                <div style="font-size:13px;color:var(--texto-suave)">
+                  Must be Safari — Chrome and other browsers won't work.</div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:flex-start;gap:12px">
+              <div style="font-size:24px;line-height:1">2</div>
+              <div>
+                <div style="font-weight:700">Tap the Share button <span style="font-size:18px">⎙</span></div>
+                <div style="font-size:13px;color:var(--texto-suave)">
+                  It's the square with an arrow pointing up — in the bottom toolbar.</div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:flex-start;gap:12px">
+              <div style="font-size:24px;line-height:1">3</div>
+              <div>
+                <div style="font-weight:700">Tap "Add to Home Screen"</div>
+                <div style="font-size:13px;color:var(--texto-suave)">
+                  Scroll down in the share sheet — it's the icon with a plus sign.</div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:flex-start;gap:12px">
+              <div style="font-size:24px;line-height:1">4</div>
+              <div>
+                <div style="font-weight:700">Tap "Add" (top right)</div>
+                <div style="font-size:13px;color:var(--texto-suave)">
+                  The app icon will appear on your Home Screen. Done!</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </details>`;
 
     document.getElementById("p-salvar")
       .addEventListener("click", () => this._salvar());

@@ -21,7 +21,8 @@ const Dashboard = {
       <div id="dash-periodo" style="margin-bottom:16px"></div>
       <div id="dash-numeros">Loading...</div>
       <div id="dash-falta" style="margin-top:8px"></div>
-      <div id="dash-tops" style="margin-top:20px"></div>`;
+      <div id="dash-tops" style="margin-top:20px"></div>
+      <div id="dash-cupons" style="margin-top:20px"></div>`;
 
     await this._carregar();
   },
@@ -39,6 +40,7 @@ const Dashboard = {
     this._desenharNumeros();
     this._desenharFaltaPagar();
     this._desenharTops();
+    this._desenharCupons();
   },
 
   /* ===== seletor de periodo + navegacao ===== */
@@ -169,6 +171,60 @@ const Dashboard = {
             <span>${i+1}. ${this._esc(c[0])}</span><strong>${c[1]} meals</strong></div>`).join("")
           : '<div style="color:var(--texto-suave)">No data yet</div>'}
       </div>`;
+  },
+
+  /* ===== Coupons ===== */
+  async _desenharCupons() {
+    const el = document.getElementById("dash-cupons");
+    const { data } = await sb.from("cupons").select("*").order("criado_em", { ascending: false });
+    const lista = data || [];
+    el.innerHTML = `
+      <div class="card">
+        <div style="font-weight:700;margin-bottom:12px">🎟 Coupons</div>
+        <div style="display:flex;gap:8px;margin-bottom:8px">
+          <input class="campo" id="dc-codigo" placeholder="Code"
+                 style="margin:0;flex:1;text-transform:uppercase"
+                 oninput="this.value=this.value.toUpperCase()">
+          <input class="campo" id="dc-pct" type="number" min="1" max="100"
+                 placeholder="%" style="margin:0;width:64px">
+          <button class="btn" style="padding:10px 14px;flex-shrink:0"
+                  onclick="Dashboard._cupomCriar()">Add</button>
+        </div>
+        <div class="erro-msg" id="dc-erro" style="margin-bottom:4px"></div>
+        ${lista.length ? lista.map(c => `
+          <div style="display:flex;align-items:center;justify-content:space-between;
+                      padding:8px 0;border-bottom:1px solid var(--borda)">
+            <div>
+              <span style="font-weight:700">${this._esc(c.codigo)}</span>
+              <span style="font-size:13px;color:var(--texto-suave);margin-left:8px">${c.desconto_pct}% off</span>
+            </div>
+            <button class="btn btn-perigo" style="padding:6px 12px;font-size:13px"
+              onclick="Dashboard._cupomDeletar('${c.id}','${this._esc(c.codigo)}')">Delete</button>
+          </div>`).join("")
+        : `<div style="font-size:13px;color:var(--texto-suave)">No active coupons.</div>`}
+      </div>`;
+  },
+
+  async _cupomCriar() {
+    const codigoEl = document.getElementById("dc-codigo");
+    const pctEl    = document.getElementById("dc-pct");
+    const erro     = document.getElementById("dc-erro");
+    const codigo   = codigoEl.value.trim().toUpperCase();
+    const pct      = parseInt(pctEl.value);
+    erro.textContent = "";
+    if (!codigo) { erro.textContent = "Enter a code."; return; }
+    if (!pct || pct < 1 || pct > 100) { erro.textContent = "Enter % between 1–100."; return; }
+    const { error } = await sb.from("cupons").insert({ codigo, desconto_pct: pct });
+    if (error) { erro.textContent = error.message.includes("unique") ? "Code already exists." : error.message; return; }
+    codigoEl.value = ""; pctEl.value = "";
+    this._desenharCupons();
+  },
+
+  async _cupomDeletar(id, codigo) {
+    if (!confirm(`Delete coupon "${codigo}"?`)) return;
+    const { error } = await sb.from("cupons").delete().eq("id", id);
+    if (error) { alert("Error: " + error.message); return; }
+    this._desenharCupons();
   },
 
   /* ===== periodo (datas) ===== */
