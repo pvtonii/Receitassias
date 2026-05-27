@@ -672,17 +672,23 @@ const Pedido = {
     btn.disabled = false; if (btn2) btn2.disabled = false;
     if (falhou) { erro.textContent = "Error placing order. Please try again."; return; }
 
-    // notifica o admin via ntfy (fire-and-forget, nao bloqueia o fluxo)
+    // notifica o admin via Pushover (fire-and-forget, nao bloqueia o fluxo)
     try {
       const totalMeals = escolhidos.reduce((s, d) => s + (this._qtd.get(d.dia) || 1), 0);
       const dias = escolhidos.map(d => {
         const dt = new Date(d.dia + "T00:00:00");
         return ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][dt.getDay()];
       }).join(", ");
-      fetch("https://ntfy.sh/" + REGRAS.NTFY_TOPIC, {
+      fetch("https://api.pushover.net/1/messages.json", {
         method: "POST",
-        body: `${cliente.nome} · ${totalMeals} meal(s) · $${total} · ${dias}`,
-        headers: { "Title": "New Order", "Priority": "high", "Tags": "fork_and_knife" }
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          token:   REGRAS.PUSHOVER_TOKEN,
+          user:    REGRAS.PUSHOVER_USER,
+          title:   "New Order 🍱",
+          message: `${cliente.nome} · ${totalMeals} meal(s) · $${total} · ${dias}`,
+          priority: 1
+        })
       });
     } catch(e) {}
 
