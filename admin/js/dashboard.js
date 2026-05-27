@@ -116,7 +116,7 @@ const Dashboard = {
     // agrupa por cliente
     const porCliente = {};
     for (const p of naoPagos) {
-      const nome = p.clientes ? p.clientes.nome : "Customer";
+      const nome = p.clientes ? p.clientes.nome : (p.nome_avulso || "Walk-in");
       porCliente[nome] = (porCliente[nome] || 0) + Number(p.total);
     }
     el.innerHTML = `
