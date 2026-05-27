@@ -81,7 +81,7 @@ const Dashboard = {
             <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
               <div style="flex:1;min-width:0">
                 <div style="font-weight:700;color:var(--erro);font-size:15px">
-                  💸 ${abertos.length} unpaid meal(s)</div>
+                  💸 ${abertos.reduce((s,p)=>s+(p.quantidade||1),0)} unpaid meal(s)</div>
                 <div style="font-size:13px;color:var(--texto-suave);margin-top:2px">
                   $${totalAbertos.toFixed(0)} total — please pay so we can keep cooking!</div>
               </div>
@@ -129,17 +129,18 @@ const Dashboard = {
      atrasada=true muda a cor pra vermelho e marca "OVERDUE" no header */
   _cardSemana(segundaIso, pedidos, atrasada) {
     const total = pedidos.reduce((s, p) => s + Number(p.total), 0);
-    const qtd = pedidos.length;
+    const qtd = pedidos.reduce((s, p) => s + (p.quantidade || 1), 0);
     const ids = pedidos.map(p => p.id).join(",");
     const cor = atrasada ? "var(--erro)" : "var(--primaria)";
     // lista os dias/marmitas dessa semana
     const linhas = pedidos
       .sort((a,b) => a.dia_consumo.localeCompare(b.dia_consumo))
       .map(p => {
+        const qty  = p.quantidade || 1;
         const nome = (p.pedido_itens && p.pedido_itens[0] && p.pedido_itens[0].menu_itens)
           ? p.pedido_itens[0].menu_itens.nome : "Meal";
         return `<div style="font-size:13px;color:var(--texto-suave)">
-                  ${this._diaCurto(p.dia_consumo)} · ${this._esc(nome)} · $${Number(p.total).toFixed(0)}</div>`;
+                  ${this._diaCurto(p.dia_consumo)} · ${qty > 1 ? qty+"× " : ""}${this._esc(nome)} · $${Number(p.total).toFixed(0)}</div>`;
       }).join("");
 
     return `

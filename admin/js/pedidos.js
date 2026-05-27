@@ -90,7 +90,6 @@ const Pedidos = {
         <label>Payment method</label>
         <select class="campo" id="f-metodo">
           <option value="CashApp">CashApp</option>
-          <option value="Venmo">Venmo</option>
           <option value="Zelle">Zelle</option>
           <option value="Apple Cash">Apple Cash</option>
         </select>

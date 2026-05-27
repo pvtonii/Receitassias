@@ -47,14 +47,13 @@ const Pedido = {
 
       <p style="font-size:14px;margin-bottom:8px">Or pay with:</p>
       <div class="card" style="margin-bottom:16px">
-        ${this._linhaPag("Venmo", pix.venmo)}
         ${this._linhaPag("Zelle", pix.zelle, pix.zelle_nome)}
         ${this._linhaPag("Apple Cash", pix.applecash)}
       </div>
 
       <p style="font-size:14px;margin-bottom:8px">Which one did you use?</p>
       <div id="metodos" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
-        ${["CashApp","Venmo","Zelle","Apple Cash"].map(mt => `
+        ${["CashApp","Zelle","Apple Cash"].map(mt => `
           <button class="metodo-chip" data-mt="${mt}"
             style="flex:1;min-width:calc(50% - 4px);padding:12px;border-radius:var(--raio-sm);
                    border:2px solid var(--borda);background:#fff;font-weight:600;
@@ -118,14 +117,13 @@ const Pedido = {
 
       <p style="font-size:14px;margin-bottom:8px">Or pay with:</p>
       <div class="card" style="margin-bottom:16px">
-        ${this._linhaPag("Venmo", pix.venmo)}
         ${this._linhaPag("Zelle", pix.zelle, pix.zelle_nome)}
         ${this._linhaPag("Apple Cash", pix.applecash)}
       </div>
 
       <p style="font-size:14px;margin-bottom:8px">Which one did you use?</p>
       <div id="metodos" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
-        ${["CashApp","Venmo","Zelle","Apple Cash"].map(mt => `
+        ${["CashApp","Zelle","Apple Cash"].map(mt => `
           <button class="metodo-chip" data-mt="${mt}"
             style="flex:1;min-width:calc(50% - 4px);padding:12px;border-radius:var(--raio-sm);
                    border:2px solid var(--borda);background:#fff;font-weight:600;
@@ -485,7 +483,6 @@ const Pedido = {
 
       <p style="font-size:14px;margin-bottom:8px">Or pay with:</p>
       <div class="card" style="margin-bottom:16px">
-        ${this._linhaPag("Venmo", pix.venmo)}
         ${this._linhaPag("Zelle", pix.zelle, pix.zelle_nome)}
         ${this._linhaPag("Apple Cash", pix.applecash)}
       </div>
@@ -496,7 +493,7 @@ const Pedido = {
 
       <p style="font-size:14px;margin-bottom:8px">Which one did you use?</p>
       <div id="metodos" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
-        ${["CashApp","Venmo","Zelle","Apple Cash"].map(mt => `
+        ${["CashApp","Zelle","Apple Cash"].map(mt => `
           <button class="metodo-chip" data-mt="${mt}"
             style="flex:1;min-width:calc(50% - 4px);padding:12px;border-radius:var(--raio-sm);
                    border:2px solid var(--borda);background:#fff;font-weight:600;
