@@ -595,7 +595,7 @@ const Pedido = {
   _linhaPag(nome, valor, subtexto, ultimo = false) {
     const valLimpo = this._esc(valor).replace(/'/g, "");
     return `
-      <div style="padding:8px 0${ultimo ? "" : ";border-bottom:1px solid var(--borda)"}">
+      <div style="padding:8px 0${ultimo ? " 0" : ";border-bottom:1px solid var(--borda)"}">
         <div style="display:flex;align-items:center;gap:8px">
           <div style="flex:1"><strong>${nome}:</strong> ${this._esc(valor)}</div>
           <button class="btn-icone copy-btn" title="Copy"
@@ -671,6 +671,20 @@ const Pedido = {
 
     btn.disabled = false; if (btn2) btn2.disabled = false;
     if (falhou) { erro.textContent = "Error placing order. Please try again."; return; }
+
+    // notifica o admin via ntfy (fire-and-forget, nao bloqueia o fluxo)
+    try {
+      const totalMeals = escolhidos.reduce((s, d) => s + (this._qtd.get(d.dia) || 1), 0);
+      const dias = escolhidos.map(d => {
+        const dt = new Date(d.dia + "T00:00:00");
+        return ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][dt.getDay()];
+      }).join(", ");
+      fetch("https://ntfy.sh/" + REGRAS.NTFY_TOPIC, {
+        method: "POST",
+        body: `${cliente.nome} · ${totalMeals} meal(s) · $${total} · ${dias}`,
+        headers: { "Title": "New Order", "Priority": "high", "Tags": "fork_and_knife" }
+      });
+    } catch(e) {}
 
     document.getElementById("app").innerHTML = `
       <div class="card" style="text-align:center;margin-top:40px">

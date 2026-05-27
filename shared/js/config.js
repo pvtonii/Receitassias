@@ -6,7 +6,7 @@
    suba o numero abaixo. Os dois footers leem daqui.
 ============================================ */
 
-const APP_VERSION = "1.24.2";
+const APP_VERSION = "1.24.3";
 const APP_DATA    = "2026-05-26";
 
 /* ============================================
@@ -36,6 +36,7 @@ const REGRAS = {
   PRECO_SEMANA: 12,          // por marmita, se levar os 5 dias
   PRECO_ESPECIAL: 15,
   DIAS_SEMANA: 5,
+  NTFY_TOPIC: "receitassias-orders-7k2p9m4x",
   PAGAMENTO: {
     cashapp:        "$TassiaOliveira1",      // exibido pro cliente
     cashapp_tag:    "TassiaOliveira1",        // usado no link cash.app/$tag/valor
