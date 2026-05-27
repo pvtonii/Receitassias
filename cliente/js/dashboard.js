@@ -195,6 +195,7 @@ const Dashboard = {
           <div style="flex:1">
             <div style="font-weight:600">${this._esc(marmita)}</div>
             <div style="font-size:13px;color:var(--texto-suave)">${dia} · $${Number(p.total).toFixed(0)}</div>
+            ${p.desconto_pct ? `<div style="font-size:12px;color:var(--sucesso)">🎟 ${p.desconto_pct}% off</div>` : ""}
             <div style="margin-top:4px">${status}</div>
           </div>
         </div>

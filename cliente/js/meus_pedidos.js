@@ -21,7 +21,7 @@ const MeusPedidos = {
     if (!cliente) { el.innerHTML = this._aviso("Please log in again."); return; }
 
     const { data, error } = await sb.from("pedidos")
-      .select("id, dia_consumo, total, quantidade, status_pagamento, pedido_itens(menu_itens(nome, especial))")
+      .select("id, dia_consumo, total, quantidade, status_pagamento, desconto_pct, cupom_codigo, pedido_itens(menu_itens(nome, especial))")
       .eq("cliente_id", cliente.id)
       .eq("cancelado", false)
       .order("dia_consumo", { ascending: false });
@@ -96,7 +96,10 @@ const MeusPedidos = {
               ${this._fmtData(p.dia_consumo)}</div>
             <div style="margin-top:6px">${statusLabel}</div>
           </div>
-          <div style="font-weight:700;flex-shrink:0">$${Number(p.total).toFixed(0)}</div>
+          <div style="flex-shrink:0;text-align:right">
+            <div style="font-weight:700">$${Number(p.total).toFixed(0)}</div>
+            ${p.desconto_pct ? `<div style="font-size:11px;color:var(--sucesso)">${p.desconto_pct}% off</div>` : ""}
+          </div>
         </div>
         ${pode ? `
           <button class="btn btn-perigo" style="width:100%;margin-top:10px;padding:10px"

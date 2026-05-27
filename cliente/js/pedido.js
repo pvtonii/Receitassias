@@ -165,7 +165,8 @@ const Pedido = {
 
   async _carregar() {
     const el = document.getElementById("ord-conteudo");
-    this._qtd = new Map();
+    this._qtd   = new Map();
+    this._cupom = null;
 
     const hojeIso = this._hojeCentralIso();
 
@@ -416,19 +417,22 @@ const Pedido = {
     const semanaCheia = this._dias.length > 0
       && this._dias.every(d => (this._qtd.get(d.dia) || 0) > 0);
 
-    let total = 0;
+    let totalOriginal = 0;
     for (const d of escolhidos) {
       const qty = this._qtd.get(d.dia) || 1;
-      if (d.especial)       total += qty * REGRAS.PRECO_ESPECIAL;
-      else if (semanaCheia) total += qty * REGRAS.PRECO_SEMANA;
-      else                  total += qty * REGRAS.PRECO_AVULSO;
+      if (d.especial)       totalOriginal += qty * REGRAS.PRECO_ESPECIAL;
+      else if (semanaCheia) totalOriginal += qty * REGRAS.PRECO_SEMANA;
+      else                  totalOriginal += qty * REGRAS.PRECO_AVULSO;
     }
-    return { escolhidos, semanaCheia, total };
+    const desconto = this._cupom
+      ? Math.round(totalOriginal * this._cupom.desconto_pct / 100) : 0;
+    const total = totalOriginal - desconto;
+    return { escolhidos, semanaCheia, total, totalOriginal, desconto };
   },
 
   _atualizarResumo() {
     const box = document.getElementById("ord-resumo");
-    const { escolhidos, semanaCheia, total } = this._calcular();
+    const { escolhidos, semanaCheia, total, totalOriginal, desconto } = this._calcular();
     if (!escolhidos.length) {
       box.innerHTML = `<div style="text-align:center;color:var(--texto-suave)">
         Select at least one day</div>`;
@@ -436,31 +440,75 @@ const Pedido = {
     }
     const totalMeals = escolhidos.reduce((s, d) => s + (this._qtd.get(d.dia) || 1), 0);
     const temAtrasado = escolhidos.some(d => d._atrasado);
-    let economia = 0;
+    let economiaFull = 0;
     if (semanaCheia) {
       const avulso = escolhidos.reduce((s, d) => {
         const qty = this._qtd.get(d.dia) || 1;
         return s + qty * (d.especial ? REGRAS.PRECO_ESPECIAL : REGRAS.PRECO_AVULSO);
       }, 0);
-      economia = avulso - total;
+      economiaFull = avulso - totalOriginal;
     }
+    const totalEconomia = economiaFull + desconto;
+
+    const precoHtml = desconto > 0
+      ? `<span style="text-decoration:line-through;color:var(--texto-suave);
+                      font-size:14px;margin-right:6px">$${totalOriginal.toFixed(0)}</span>
+         <span style="font-weight:700;font-size:18px;color:var(--sucesso)">$${total.toFixed(0)}</span>`
+      : `<span style="font-weight:700;font-size:18px">$${total.toFixed(0)}</span>`;
+
     box.innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:center">
         <div>
-          <div style="font-weight:700;font-size:18px">$${total.toFixed(0)}</div>
+          <div>${precoHtml}</div>
           <div style="font-size:12px;color:var(--texto-suave)">
             ${totalMeals} meal${totalMeals !== 1 ? "s" : ""} · ${escolhidos.length} day${escolhidos.length !== 1 ? "s" : ""}${semanaCheia ? " · full week 🎉" : ""}</div>
-          ${economia > 0 ? `<div style="font-size:12px;color:var(--sucesso);font-weight:600">
-            You save $${economia}!</div>` : ""}
+          ${totalEconomia > 0 ? `<div style="font-size:12px;color:var(--sucesso);font-weight:600">
+            You save $${totalEconomia}!</div>` : ""}
+          ${desconto > 0 ? `<div style="font-size:12px;color:var(--sucesso)">
+            🎟 ${this._cupom.desconto_pct}% off · ${this._esc(this._cupom.codigo)}</div>` : ""}
         </div>
         <button class="btn" onclick="Pedido._confirmar()">Continue</button>
       </div>
       ${temAtrasado ? `<div style="color:var(--erro);font-size:12px;margin-top:8px">
-        Some days are past the cutoff and need confirmation.</div>` : ""}`;
+        Some days are past the cutoff and need confirmation.</div>` : ""}
+      <div style="margin-top:10px;display:flex;gap:8px;align-items:center">
+        <input class="campo" id="cupom-input" placeholder="Coupon code"
+               style="margin:0;flex:1;text-transform:uppercase"
+               value="${this._cupom ? this._esc(this._cupom.codigo) : ''}">
+        <button class="btn-secundario" style="padding:10px 14px;flex-shrink:0"
+                onclick="Pedido._aplicarCupom()">Apply</button>
+      </div>
+      <div id="cupom-msg" style="font-size:12px;margin-top:4px;min-height:16px"></div>`;
+  },
+
+  async _aplicarCupom() {
+    const input = document.getElementById("cupom-input");
+    const msg   = document.getElementById("cupom-msg");
+    const codigo = (input ? input.value.trim().toUpperCase() : "");
+
+    if (!codigo) {
+      this._cupom = null;
+      this._atualizarResumo();
+      return;
+    }
+
+    if (msg) msg.innerHTML = '<span style="color:var(--texto-suave)">Checking...</span>';
+
+    const { data } = await sb.from("cupons")
+      .select("codigo, desconto_pct").eq("codigo", codigo).eq("ativo", true).maybeSingle();
+
+    if (!data) {
+      this._cupom = null;
+      if (msg) msg.innerHTML = '<span style="color:var(--erro)">Invalid or expired coupon.</span>';
+      return;
+    }
+
+    this._cupom = data;
+    this._atualizarResumo();
   },
 
   async _confirmar() {
-    const { escolhidos, total } = this._calcular();
+    const { escolhidos, total, totalOriginal, desconto } = this._calcular();
     if (!escolhidos.length) return;
     const temAtrasado = escolhidos.some(d => d._atrasado);
 
@@ -471,6 +519,13 @@ const Pedido = {
               onclick="Pedido.render(document.getElementById('app'))">← Back</button>
       <h2 style="margin-bottom:8px">Payment</h2>
       <div class="card" style="margin-bottom:16px">
+        ${desconto > 0 ? `
+          <div style="display:flex;justify-content:space-between;font-size:14px;
+                      color:var(--texto-suave);margin-bottom:4px">
+            <span>Subtotal</span>
+            <span style="text-decoration:line-through">$${totalOriginal.toFixed(0)}</span></div>
+          <div style="font-size:13px;color:var(--sucesso);margin-bottom:6px">
+            🎟 ${this._cupom.desconto_pct}% off · ${this._esc(this._cupom.codigo)}</div>` : ""}
         <div style="display:flex;justify-content:space-between;font-weight:700;font-size:18px">
           <span>Total</span><span>$${total.toFixed(0)}</span></div>
         <div style="font-size:13px;color:var(--texto-suave);margin-top:4px">
@@ -584,21 +639,28 @@ const Pedido = {
     if (!cliente) { erro.textContent = "Session error. Please log in again."; btn.disabled = false; if (btn2) btn2.disabled = false; return; }
 
     const { semanaCheia } = this._calcular();
+    const cupom_codigo = this._cupom ? this._cupom.codigo : null;
+    const desconto_pct = this._cupom ? this._cupom.desconto_pct : null;
     let falhou = false;
     for (const d of escolhidos) {
       const qty = this._qtd.get(d.dia) || 1;
       const unit = d.especial ? REGRAS.PRECO_ESPECIAL
                    : semanaCheia ? REGRAS.PRECO_SEMANA
                    : REGRAS.PRECO_AVULSO;
+      const totalOriginalDia = qty * unit;
+      const totalDia = desconto_pct
+        ? Math.round(totalOriginalDia * (1 - desconto_pct / 100)) : totalOriginalDia;
       const { data: ped, error } = await sb.from("pedidos").insert({
         cliente_id: cliente.id,
         dia_consumo: d.dia,
-        total: qty * unit,
+        total: totalDia,
         quantidade: qty,
         status_pagamento: statusPag,
         metodo_pagamento: metodo,
         precisa_aprovacao: d._atrasado,
-        status_aprovacao: d._atrasado ? "pendente" : null
+        status_aprovacao: d._atrasado ? "pendente" : null,
+        cupom_codigo,
+        desconto_pct
       }).select().single();
 
       if (error) { falhou = true; break; }

@@ -307,6 +307,8 @@ const Pedidos = {
             <div style="font-weight:700">${this._esc(cliente)}</div>
             <div style="font-size:13px;color:var(--texto-suave)">
               ${p.quantidade > 1 ? p.quantidade + "× " : ""}${this._esc(marmita)} · ${this._fmtData(p.dia_consumo)} · $${Number(p.total).toFixed(0)}</div>
+            ${p.desconto_pct ? `<div style="font-size:12px;color:var(--sucesso)">
+              🎟 ${p.desconto_pct}% off · ${this._esc(p.cupom_codigo || "")}</div>` : ""}
             <div style="margin-top:4px">${this._statusLabel(p)} ${metodo ?
               `<span style="font-size:12px;color:var(--texto-suave)">${metodo}</span>` : ""}</div>
           </div>

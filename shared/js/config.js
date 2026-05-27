@@ -6,7 +6,7 @@
    suba o numero abaixo. Os dois footers leem daqui.
 ============================================ */
 
-const APP_VERSION = "1.23.6";
+const APP_VERSION = "1.24.0";
 const APP_DATA    = "2026-05-26";
 
 /* ============================================
