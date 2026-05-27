@@ -120,7 +120,35 @@ const Dashboard = {
     if (resto.length) {
       html += `<div style="font-size:12px;font-weight:700;text-transform:uppercase;
                  letter-spacing:.5px;color:var(--texto-suave);margin:16px 0 8px">History</div>`;
-      html += resto.map(p => this._cardPedido(p, false)).join("");
+
+      const semHist = {};
+      for (const p of resto) {
+        const ch = this._segundaDaSemana(p.dia_consumo);
+        (semHist[ch] = semHist[ch] || []).push(p);
+      }
+      const chaves = Object.keys(semHist).sort().reverse();
+      chaves.forEach((ch, i) => {
+        const ps = semHist[ch];
+        const fim = this._sexta(ch);
+        const label = this._intervalo(ch, fim);
+        const totalSem = ps.reduce((s, p) => s + Number(p.total), 0);
+        const qtdSem   = ps.reduce((s, p) => s + (p.quantidade || 1), 0);
+        html += `
+          <details${i === 0 ? " open" : ""} style="margin-bottom:8px">
+            <summary style="list-style:none;cursor:pointer;display:flex;
+                            align-items:center;justify-content:space-between;
+                            padding:10px 14px;background:var(--card);
+                            border:1px solid var(--borda);border-radius:var(--raio);
+                            font-size:13px">
+              <span style="font-weight:700">${label}</span>
+              <span style="color:var(--texto-suave)">${qtdSem} meal(s) · $${totalSem.toFixed(0)} ›</span>
+            </summary>
+            <div style="padding:4px 0 0">
+              ${ps.sort((a,b)=>b.dia_consumo.localeCompare(a.dia_consumo))
+                  .map(p => this._cardPedido(p)).join("")}
+            </div>
+          </details>`;
+      });
     }
     el.innerHTML = html;
   },
@@ -204,6 +232,18 @@ const Dashboard = {
     const d = new Date(iso + "T00:00:00");
     const m = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
     return `${m[d.getMonth()]} ${d.getDate()}`;
+  },
+  _sexta(segIso) {
+    const d = new Date(segIso + "T00:00:00");
+    d.setDate(d.getDate() + 4);
+    return d.toISOString().slice(0, 10);
+  },
+  _intervalo(ini, fim) {
+    const a = new Date(ini + "T00:00:00"), b = new Date(fim + "T00:00:00");
+    const m = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    if (a.getMonth() === b.getMonth())
+      return `${m[a.getMonth()]} ${a.getDate()}–${b.getDate()}`;
+    return `${m[a.getMonth()]} ${a.getDate()} – ${m[b.getMonth()]} ${b.getDate()}`;
   },
 
   /* --- datas (fuso Central) --- */

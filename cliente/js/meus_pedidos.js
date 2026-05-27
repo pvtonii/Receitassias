@@ -41,10 +41,6 @@ const MeusPedidos = {
     }
 
     const hojeIso = new Date().toISOString().slice(0, 10);
-    const cab = (titulo, primeiro) => `
-      <div style="font-size:13px;font-weight:700;text-transform:uppercase;
-                  letter-spacing:.5px;color:var(--texto-suave);
-                  margin:${primeiro ? "0" : "16px"} 0 8px">${titulo}</div>`;
 
     let html = "";
     const semanas = Object.keys(grupos).sort().reverse(); // mais recente primeiro
@@ -52,11 +48,24 @@ const MeusPedidos = {
       const fim = this._sexta(seg);
       const isThisWeek = seg <= hojeIso && hojeIso <= fim;
       const isFuture   = seg > hojeIso;
-      const label = isThisWeek ? "This Week"
-                  : isFuture   ? this._intervalo(seg, fim)
-                  : this._intervalo(seg, fim);
-      html += cab(label, i === 0);
-      html += grupos[seg].map(p => this._card(p)).join("");
+      const label = isThisWeek ? "This Week" : this._intervalo(seg, fim);
+      const ps = grupos[seg];
+      const totalSem = ps.reduce((s, p) => s + Number(p.total), 0);
+      const qtdSem   = ps.reduce((s, p) => s + (p.quantidade || 1), 0);
+      html += `
+        <details${i === 0 ? " open" : ""} style="margin-bottom:8px">
+          <summary style="list-style:none;cursor:pointer;display:flex;
+                          align-items:center;justify-content:space-between;
+                          padding:10px 14px;background:var(--card);
+                          border:1px solid var(--borda);border-radius:var(--raio);
+                          font-size:13px">
+            <span style="font-weight:700">${label}</span>
+            <span style="color:var(--texto-suave)">${qtdSem} meal(s) · $${totalSem.toFixed(0)} ›</span>
+          </summary>
+          <div style="padding:4px 0 0">
+            ${ps.map(p => this._card(p)).join("")}
+          </div>
+        </details>`;
     });
 
     el.innerHTML = html;
