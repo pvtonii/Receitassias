@@ -63,7 +63,7 @@ const MeusPedidos = {
             <span style="color:var(--texto-suave)">${qtdSem} meal(s) · $${totalSem.toFixed(0)} ›</span>
           </summary>
           <div style="padding:4px 0 0">
-            ${ps.map(p => this._card(p)).join("")}
+            ${ps.sort((a,b)=>a.dia_consumo.localeCompare(b.dia_consumo)).map(p => this._card(p)).join("")}
           </div>
         </details>`;
     });
