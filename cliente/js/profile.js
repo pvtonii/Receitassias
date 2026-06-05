@@ -49,36 +49,28 @@ const Profile = {
         </summary>
         <div class="card" style="margin-top:8px">
           <p style="font-size:14px;color:var(--texto-suave);margin-bottom:14px">
-            Install ReceiTassia's as an app on your iPhone for quick access — no App Store needed.</p>
+            Install ReceiTassia's as an app on your phone for quick access — no App Store needed. Works on any browser!</p>
           <div style="display:flex;flex-direction:column;gap:14px;font-size:14px">
             <div style="display:flex;align-items:flex-start;gap:12px">
               <div style="font-size:24px;line-height:1;width:20px;text-align:center;flex-shrink:0">1</div>
               <div>
-                <div style="font-weight:700">Open in Safari</div>
+                <div style="font-weight:700">Open the menu</div>
                 <div style="font-size:13px;color:var(--texto-suave)">
-                  Must be Safari — Chrome and other browsers won't work.</div>
+                  On Safari: tap the Share button <strong>⎙</strong> at the bottom. On Chrome or other browsers: tap the <strong>⋮</strong> menu (top right).</div>
               </div>
             </div>
             <div style="display:flex;align-items:flex-start;gap:12px">
               <div style="font-size:24px;line-height:1;width:20px;text-align:center;flex-shrink:0">2</div>
               <div>
-                <div style="font-weight:700">Tap the Share button <span style="font-size:18px">⎙</span></div>
+                <div style="font-weight:700">Tap "Add to Home Screen"</div>
                 <div style="font-size:13px;color:var(--texto-suave)">
-                  It's the square with an arrow pointing up — in the bottom toolbar.</div>
+                  Scroll through the menu options until you find it — it has a plus icon.</div>
               </div>
             </div>
             <div style="display:flex;align-items:flex-start;gap:12px">
               <div style="font-size:24px;line-height:1;width:20px;text-align:center;flex-shrink:0">3</div>
               <div>
-                <div style="font-weight:700">Tap "Add to Home Screen"</div>
-                <div style="font-size:13px;color:var(--texto-suave)">
-                  Scroll down in the share sheet — it's the icon with a plus sign.</div>
-              </div>
-            </div>
-            <div style="display:flex;align-items:flex-start;gap:12px">
-              <div style="font-size:24px;line-height:1;width:20px;text-align:center;flex-shrink:0">4</div>
-              <div>
-                <div style="font-weight:700">Tap "Add" (top right)</div>
+                <div style="font-weight:700">Tap "Add"</div>
                 <div style="font-size:13px;color:var(--texto-suave)">
                   The app icon will appear on your Home Screen. Done!</div>
               </div>
