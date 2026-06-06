@@ -43,7 +43,8 @@ const REGRAS = {
     cashapp_tag:    "TassiaOliveira1",        // usado no link cash.app/$tag/valor
     zelle:          "(803) 457-6473",
     zelle_nome:     "Tassia Colombo de Oliveira S",
-    applecash:      "(803) 457-6473"          // mesmo telefone do Zelle
+    applecash:      "(803) 457-6473",          // mesmo telefone do Zelle
+    applecash_phone: "18034576473"            // usado no link sms:+phone
   }
 };
 

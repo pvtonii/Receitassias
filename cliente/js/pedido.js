@@ -42,13 +42,14 @@ const Pedido = {
           ${ids.length} meal(s)</div>
       </div>
 
-      <button class="btn" id="cash-link" style="width:100%;margin-bottom:16px;
+      <button class="btn" id="cash-link" style="width:100%;margin-bottom:10px;
               background:var(--sucesso)">Pay $${total.toFixed(0)} with CashApp</button>
+      <button class="btn" id="apple-link" style="width:100%;margin-bottom:16px;
+              background:#000;color:#fff">Pay $${total.toFixed(0)} with Apple Cash</button>
 
       <p style="font-size:14px;margin-bottom:8px">Or pay with:</p>
       <div class="card" style="margin-bottom:16px;padding-top:0">
-        ${this._linhaPag("Zelle", pix.zelle, pix.zelle_nome)}
-        ${this._linhaPag("Apple Cash", pix.applecash, null, true)}
+        ${this._linhaPag("Zelle", pix.zelle, pix.zelle_nome, true)}
       </div>
 
       <p style="font-size:14px;margin-bottom:8px">Which one did you use?</p>
@@ -66,6 +67,10 @@ const Pedido = {
     document.getElementById("cash-link").addEventListener("click", () => {
       window.open(`https://cash.app/$${REGRAS.PAGAMENTO.cashapp_tag}/${total.toFixed(0)}`, "_blank");
       this._metodoSel = "CashApp"; this._marcarChip();
+    });
+    document.getElementById("apple-link").addEventListener("click", () => {
+      window.open(`sms:+${REGRAS.PAGAMENTO.applecash_phone}`, "_blank");
+      this._metodoSel = "Apple Cash"; this._marcarChip();
     });
     this._metodoSel = null;
     document.querySelectorAll(".metodo-chip").forEach(chip => {
@@ -114,13 +119,14 @@ const Pedido = {
           ${this._esc(nome)} · ${this._fmtDataSimples(ped.dia_consumo)}</div>
       </div>
 
-      <button class="btn" id="cash-link" style="width:100%;margin-bottom:16px;
+      <button class="btn" id="cash-link" style="width:100%;margin-bottom:10px;
               background:var(--sucesso)">Pay $${total.toFixed(0)} with CashApp</button>
+      <button class="btn" id="apple-link" style="width:100%;margin-bottom:16px;
+              background:#000;color:#fff">Pay $${total.toFixed(0)} with Apple Cash</button>
 
       <p style="font-size:14px;margin-bottom:8px">Or pay with:</p>
       <div class="card" style="margin-bottom:16px;padding-top:0">
-        ${this._linhaPag("Zelle", pix.zelle, pix.zelle_nome)}
-        ${this._linhaPag("Apple Cash", pix.applecash, null, true)}
+        ${this._linhaPag("Zelle", pix.zelle, pix.zelle_nome, true)}
       </div>
 
       <p style="font-size:14px;margin-bottom:8px">Which one did you use?</p>
@@ -138,6 +144,10 @@ const Pedido = {
     document.getElementById("cash-link").addEventListener("click", () => {
       window.open(`https://cash.app/$${REGRAS.PAGAMENTO.cashapp_tag}/${total.toFixed(0)}`, "_blank");
       this._metodoSel = "CashApp"; this._marcarChip();
+    });
+    document.getElementById("apple-link").addEventListener("click", () => {
+      window.open(`sms:+${REGRAS.PAGAMENTO.applecash_phone}`, "_blank");
+      this._metodoSel = "Apple Cash"; this._marcarChip();
     });
     this._metodoSel = null;
     document.querySelectorAll(".metodo-chip").forEach(chip => {
@@ -536,14 +546,15 @@ const Pedido = {
           ${escolhidos.reduce((s,d) => s + (this._qtd.get(d.dia)||1), 0)} meal(s)</div>
       </div>
 
-      <button class="btn" id="cash-link" style="width:100%;margin-bottom:16px;
+      <button class="btn" id="cash-link" style="width:100%;margin-bottom:10px;
               background:var(--sucesso)">
         Pay $${total.toFixed(0)} with CashApp</button>
+      <button class="btn" id="apple-link" style="width:100%;margin-bottom:16px;
+              background:#000;color:#fff">Pay $${total.toFixed(0)} with Apple Cash</button>
 
       <p style="font-size:14px;margin-bottom:8px">Or pay with:</p>
       <div class="card" style="margin-bottom:16px;padding-top:0">
-        ${this._linhaPag("Zelle", pix.zelle, pix.zelle_nome)}
-        ${this._linhaPag("Apple Cash", pix.applecash, null, true)}
+        ${this._linhaPag("Zelle", pix.zelle, pix.zelle_nome, true)}
       </div>
 
       ${temAtrasado ? `<div class="card" style="border-color:var(--erro);color:var(--erro);
@@ -565,11 +576,16 @@ const Pedido = {
       <button class="btn-secundario" id="btn-depois" style="width:100%">
         I'll pay later — place order</button>`;
 
-    // botao CashApp com link e valor (cash.app/$tag/valor)
+    // botoes de pagamento rapido
     document.getElementById("cash-link").addEventListener("click", () => {
       const tag = REGRAS.PAGAMENTO.cashapp_tag;
       window.open(`https://cash.app/$${tag}/${total.toFixed(0)}`, "_blank");
       this._metodoSel = "CashApp";
+      this._marcarChip();
+    });
+    document.getElementById("apple-link").addEventListener("click", () => {
+      window.open(`sms:+${REGRAS.PAGAMENTO.applecash_phone}`, "_blank");
+      this._metodoSel = "Apple Cash";
       this._marcarChip();
     });
 
