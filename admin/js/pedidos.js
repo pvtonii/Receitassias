@@ -51,8 +51,8 @@ const Pedidos = {
       <label>Customer</label>
       <select class="campo" id="f-cli">
         <option value="">Select customer...</option>
-        ${clientes.map(c => `<option value="${c.id}">${this._esc(c.nome)} — ${this._fmtTel(c.telefone)}</option>`).join("")}
         <option value="__walkin__">— Walk-in (no account) —</option>
+        ${clientes.map(c => `<option value="${c.id}">${this._esc(c.nome)} — ${this._fmtTel(c.telefone)}</option>`).join("")}
       </select>
       <div id="f-walkin-area" style="display:none;margin-top:8px">
         <input class="campo" id="f-walkin-nome" type="text"
