@@ -37,7 +37,7 @@ const Dashboard = {
       <div class="card" style="background:var(--primaria);border:none">
         <div style="font-size:12px;font-weight:700;text-transform:uppercase;
                     letter-spacing:.5px;color:rgba(255,255,255,.75);margin-bottom:6px">
-          Today's meal</div>
+          ${["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][new Date().getDay()]}'s meal</div>
         <div style="font-weight:700;font-size:19px;color:#fff">${this._esc(m.nome)}
           ${m.especial ? '<span class="badge-especial" style="margin-left:6px;background:rgba(255,255,255,.2);color:#fff">SPECIAL</span>' : ""}
         </div>
@@ -64,7 +64,7 @@ const Dashboard = {
       <div class="card" style="border:1.5px solid var(--borda)">
         <div style="font-size:11px;font-weight:700;text-transform:uppercase;
                     letter-spacing:.5px;color:var(--texto-suave);margin-bottom:5px">
-          Tomorrow's meal</div>
+          ${["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][new Date(Date.now()+864e5).getDay()]}'s meal</div>
         <div style="font-weight:600;font-size:15px">${this._esc(m.nome)}
           ${m.especial ? '<span class="badge-especial" style="margin-left:6px">SPECIAL</span>' : ""}
         </div>
