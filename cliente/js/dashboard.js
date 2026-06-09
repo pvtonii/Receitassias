@@ -11,12 +11,39 @@ const Dashboard = {
     container.innerHTML = `
       <h2 style="margin-bottom:14px">Hi${Auth._cliente ? ", " + this._esc(Auth._cliente.nome.split(" ")[0]) : ""}!</h2>
       <div id="alerta-pendentes"></div>
-      <div id="card-amanha" style="margin-bottom:22px">Loading...</div>
+      <div id="card-hoje" style="margin-bottom:10px">Loading...</div>
+      <div id="card-amanha" style="margin-bottom:22px"></div>
       <h3 style="margin-bottom:10px">My orders</h3>
       <div id="meus-pedidos">Loading...</div>`;
 
-    await this._menuAmanha();
+    await Promise.all([this._menuHoje(), this._menuAmanha()]);
     await this._meusPedidos();
+  },
+
+  /* --- card da marmita de hoje --- */
+  async _menuHoje() {
+    const el = document.getElementById("card-hoje");
+    const hojeIso = this._hojeCentralIso();
+
+    const { data, error } = await sb.from("menu_itens")
+      .select("*").eq("dia", hojeIso).limit(1);
+
+    if (error || !data || !data.length) {
+      el.innerHTML = "";
+      return;
+    }
+    const m = data[0];
+    el.innerHTML = `
+      <div class="card" style="background:var(--primaria);border:none">
+        <div style="font-size:12px;font-weight:700;text-transform:uppercase;
+                    letter-spacing:.5px;color:rgba(255,255,255,.75);margin-bottom:6px">
+          Today's meal</div>
+        <div style="font-weight:700;font-size:19px;color:#fff">${this._esc(m.nome)}
+          ${m.especial ? '<span class="badge-especial" style="margin-left:6px;background:rgba(255,255,255,.2);color:#fff">SPECIAL</span>' : ""}
+        </div>
+        <div style="color:rgba(255,255,255,.8);font-size:14px;margin-top:4px">
+          $${Number(m.preco).toFixed(0)}</div>
+      </div>`;
   },
 
   /* --- card da marmita de amanha --- */
@@ -28,20 +55,20 @@ const Dashboard = {
       .select("*").eq("dia", amanhaIso).limit(1);
 
     if (error || !data || !data.length) {
-      el.innerHTML = `<div class="card" style="text-align:center;color:var(--texto-suave)">
-        No meal scheduled for tomorrow yet.</div>`;
+      el.innerHTML = `<div class="card" style="text-align:center;color:var(--texto-suave);
+        font-size:13px">No meal scheduled for tomorrow yet.</div>`;
       return;
     }
     const m = data[0];
     el.innerHTML = `
-      <div class="card" style="border:2px solid var(--primaria)">
-        <div style="font-size:12px;font-weight:700;text-transform:uppercase;
-                    letter-spacing:.5px;color:var(--primaria);margin-bottom:6px">
+      <div class="card" style="border:1.5px solid var(--borda)">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;
+                    letter-spacing:.5px;color:var(--texto-suave);margin-bottom:5px">
           Tomorrow's meal</div>
-        <div style="font-weight:700;font-size:17px">${this._esc(m.nome)}
+        <div style="font-weight:600;font-size:15px">${this._esc(m.nome)}
           ${m.especial ? '<span class="badge-especial" style="margin-left:6px">SPECIAL</span>' : ""}
         </div>
-        <div style="color:var(--texto-suave);font-size:14px;margin-top:4px">
+        <div style="color:var(--texto-suave);font-size:13px;margin-top:3px">
           $${Number(m.preco).toFixed(0)}</div>
       </div>`;
   },
