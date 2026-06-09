@@ -23,7 +23,7 @@ const Dashboard = {
   /* --- card da marmita de hoje --- */
   async _menuHoje() {
     const el = document.getElementById("card-hoje");
-    const hojeIso = this._hojeCentralIso();
+    const hojeIso = this._localIso(0);
 
     const { data, error } = await sb.from("menu_itens")
       .select("*").eq("dia", hojeIso).limit(1);
@@ -49,7 +49,7 @@ const Dashboard = {
   /* --- card da marmita de amanha --- */
   async _menuAmanha() {
     const el = document.getElementById("card-amanha");
-    const amanhaIso = this._amanhaCentralIso();
+    const amanhaIso = this._localIso(1);
 
     const { data, error } = await sb.from("menu_itens")
       .select("*").eq("dia", amanhaIso).limit(1);
@@ -275,6 +275,11 @@ const Dashboard = {
   },
 
   /* --- datas (fuso Central) --- */
+  _localIso(offsetDias = 0) {
+    const d = new Date();
+    d.setDate(d.getDate() + offsetDias);
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+  },
   _amanhaCentralIso() {
     const s = new Date().toLocaleString("en-US", { timeZone: "America/Chicago" });
     const d = new Date(s);
