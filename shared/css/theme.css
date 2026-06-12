@@ -170,6 +170,8 @@ label { font-size: 14px; font-weight: 600; color: var(--texto-suave); }
   border-top: 1px solid var(--borda);
   padding-bottom: env(safe-area-inset-bottom); /* barrinha do iPhone */
   box-shadow: 0 -1px 6px rgba(39,53,38,0.06);
+  transform: translateZ(0); /* camada GPU propria — impede salto ao scroll no mobile */
+  -webkit-transform: translateZ(0);
 }
 .tabbar .nav-item {
   flex: 1; display: flex; flex-direction: column; align-items: center;
