@@ -20,6 +20,7 @@ function montarNav() {
     <div class="topbar">
       <strong>Admin ReceiTassia's</strong>
       <button class="topbar-icone" onclick="forcarAtualizacao(this)" title="Refresh">&#8635;</button>
+      <span style="font-size:11px;opacity:.5;margin-right:6px">v${APP_VERSION}</span>
       <button class="sair" onclick="Auth.sair()">Log out</button>
     </div>`;
 
