@@ -136,6 +136,7 @@ label { font-size: 14px; font-weight: 600; color: var(--texto-suave); }
 /* Area de conteudo: scroll interno — tabbar fica no fluxo flex do body */
 #app {
   flex: 1;
+  min-height: 0;            /* ESSENCIAL: sem isso o flex item nao restringe altura e o tabbar desce */
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   max-width: 720px;
