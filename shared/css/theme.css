@@ -39,22 +39,13 @@ html { touch-action: manipulation; -webkit-text-size-adjust: 100%; }
 /* Evita o "destaque" cinza ao tocar em botoes no iOS */
 * { -webkit-tap-highlight-color: transparent; }
 
-html {
-  height: 100%;
-  height: -webkit-fill-available;
-}
-
 body {
   font-family: -apple-system, system-ui, "Segoe UI", sans-serif;
   background: var(--bg);
   color: var(--texto);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
-  height: 100%;
-  min-height: -webkit-fill-available;
-  overflow: hidden;        /* body NAO faz scroll — so o #app faz */
-  display: flex;
-  flex-direction: column;
+  min-height: 100vh;
 }
 
 .btn {
@@ -137,18 +128,12 @@ label { font-size: 14px; font-weight: 600; color: var(--texto-suave); }
 /* Toques tem area minima confortavel (44px e o padrao Apple) */
 .btn, .nav-item { min-height: 44px; }
 
-/* Area de conteudo: scroll interno — tabbar fica no fluxo flex do body */
+/* Area de conteudo: respira nas laterais e NAO fica atras da barra de baixo */
 #app {
-  flex: 1;
-  min-height: 0;            /* ESSENCIAL: sem isso o flex item nao restringe altura e o tabbar desce */
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
   max-width: 720px;
-  width: 100%;
   margin: 0 auto;
   padding: 16px;
-  padding-bottom: 24px;
-  box-sizing: border-box;
+  padding-bottom: calc(76px + env(safe-area-inset-bottom));
 }
 
 /* Cabecalho do topo: titulo simples no mobile (a navegacao vai pra baixo) */
@@ -178,11 +163,11 @@ label { font-size: 14px; font-weight: 600; color: var(--texto-suave); }
 
 /* ===== BARRA DE NAVEGACAO INFERIOR (estilo iPhone) ===== */
 .tabbar {
-  flex-shrink: 0;           /* nao encolhe — fica sempre visivel no rodape */
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 50;
   display: flex; justify-content: space-around; align-items: stretch;
   background: var(--bg-card);
   border-top: 1px solid var(--borda);
-  padding-bottom: env(safe-area-inset-bottom); /* barrinha do iPhone */
+  padding-bottom: env(safe-area-inset-bottom);
   box-shadow: 0 -1px 6px rgba(39,53,38,0.06);
 }
 .tabbar .nav-item {
@@ -194,24 +179,12 @@ label { font-size: 14px; font-weight: 600; color: var(--texto-suave); }
 .tabbar .nav-item .ico { font-size: 20px; line-height: 1; }
 .tabbar .nav-item.ativo { color: var(--primaria); }
 
-/* Footer de versao: escondido no mobile, so aparece no desktop */
-.app-footer {
-  display: none;
-  font-size: 12px;
-}
-
-/* Em telas largas (desktop): centraliza a tabbar e mostra o footer de versao */
+/* Em telas largas (desktop): centraliza a barra */
 @media (min-width: 721px) {
   .tabbar {
-    max-width: 720px;
-    margin: 0 auto;
-    width: 100%;
+    left: 50%; right: auto;
+    transform: translateX(-50%);
+    width: 100%; max-width: 720px;
     border-radius: 14px 14px 0 0;
-  }
-  .app-footer {
-    display: block;
-    text-align: center;
-    padding: 8px;
-    color: var(--texto-suave);
   }
 }
