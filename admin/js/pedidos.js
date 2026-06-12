@@ -326,8 +326,25 @@ const Pedidos = {
           <button class="btn" style="width:100%;margin-top:8px;padding:10px"
             onclick="Pedidos._confirmarPgto('${p.id}')">Confirm payment</button>` : ""}
         ${(p.status_pagamento === "pendente" && !atrasadoPendente) ? `
-          <div style="font-size:12px;color:var(--texto-suave);margin-top:8px">
-            Waiting for customer payment</div>` : ""}
+          <div style="margin-top:8px">
+            <div style="font-size:12px;color:var(--texto-suave);margin-bottom:6px">
+              Waiting for customer payment</div>
+            <div id="pgto-area-${p.id}" style="display:none">
+              <select class="campo" id="pgto-metodo-${p.id}" style="margin-bottom:6px">
+                <option value="">Select method...</option>
+                <option>CashApp</option>
+                <option>Zelle</option>
+                <option>Apple Cash</option>
+                <option>Cash</option>
+              </select>
+              <button class="btn" style="width:100%;padding:10px"
+                onclick="Pedidos._marcarPago('${p.id}')">Confirm</button>
+            </div>
+            <button class="btn-secundario" style="width:100%;padding:8px;font-size:13px"
+              id="pgto-btn-${p.id}"
+              onclick="document.getElementById('pgto-area-${p.id}').style.display='block';this.style.display='none'">
+              Mark as paid</button>
+          </div>` : ""}
       </div>`;
   },
 
@@ -343,6 +360,15 @@ const Pedidos = {
   async _confirmarPgto(id) {
     const { error } = await sb.from("pedidos")
       .update({ status_pagamento: "confirmado" }).eq("id", id);
+    if (error) { alert("Error: " + error.message); return; }
+    this._carregar();
+  },
+
+  async _marcarPago(id) {
+    const metodo = document.getElementById(`pgto-metodo-${id}`)?.value;
+    if (!metodo) { alert("Select a payment method."); return; }
+    const { error } = await sb.from("pedidos")
+      .update({ status_pagamento: "confirmado", metodo_pagamento: metodo }).eq("id", id);
     if (error) { alert("Error: " + error.message); return; }
     this._carregar();
   },
