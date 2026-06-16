@@ -370,7 +370,7 @@ const Pedido = {
     const btnMenos = qty === 0
       ? `${btnBase};border:2px solid var(--borda);background:#fff;color:var(--texto-suave);opacity:0.5`
       : `${btnBase};border:2px solid var(--primaria);background:#fff;color:var(--primaria)`;
-    const btnMais = qty >= 3
+    const btnMais = qty >= 10
       ? `${btnBase};border:2px solid var(--borda);background:#f5f5f5;color:var(--texto-suave);opacity:0.5`
       : `${btnBase};border:2px solid var(--primaria);background:var(--primaria);color:#fff`;
 
@@ -382,7 +382,7 @@ const Pedido = {
                   style="${btnMenos}">−</button>
           <span style="min-width:20px;text-align:center;font-weight:700;font-size:18px">${qty}</span>
           <button onclick="event.stopPropagation();Pedido._setQtd('${d.dia}',+1)"
-                  ${qty >= 3 ? "disabled" : ""}
+                  ${qty >= 10 ? "disabled" : ""}
                   style="${btnMais}">+</button>
         </div>
         ${precoHTML}
