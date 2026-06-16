@@ -391,7 +391,7 @@ const Pedido = {
 
   _setQtd(iso, delta) {
     const atual = this._qtd.get(iso) || 0;
-    const novo = Math.max(0, Math.min(3, atual + delta));
+    const novo = Math.max(0, Math.min(10, atual + delta));
     if (novo === atual) return;
     this._qtd.set(iso, novo);
 
