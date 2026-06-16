@@ -115,21 +115,36 @@ const Dashboard = {
         ✓ Everyone paid for this period</div>`;
       return;
     }
-    // agrupa por cliente
+    // agrupa por cliente mantendo ids e status
     const porCliente = {};
     for (const p of naoPagos) {
       const nome = p.clientes ? p.clientes.nome : (p.nome_avulso || "Walk-in");
-      porCliente[nome] = (porCliente[nome] || 0) + Number(p.total);
+      if (!porCliente[nome]) porCliente[nome] = { total: 0, idsPago: [], idsPendente: [] };
+      porCliente[nome].total += Number(p.total);
+      if (p.status_pagamento === "pago") porCliente[nome].idsPago.push(p.id);
+      else porCliente[nome].idsPendente.push(p.id);
     }
     el.innerHTML = `
       <div class="card">
         <div style="font-weight:700;margin-bottom:8px;color:var(--erro)">Pending payment</div>
-        ${Object.keys(porCliente).map(n => `
-          <div style="display:flex;justify-content:space-between;padding:5px 0;
-                      border-bottom:1px solid var(--borda)">
-            <span>${this._esc(n)}</span><strong>$${porCliente[n].toFixed(0)}</strong>
+        ${Object.entries(porCliente).map(([n, v]) => `
+          <div style="display:flex;align-items:center;justify-content:space-between;
+                      padding:8px 0;border-bottom:1px solid var(--borda);gap:8px">
+            <span style="flex:1">${this._esc(n)}</span>
+            <strong>$${v.total.toFixed(0)}</strong>
+            ${v.idsPago.length ? `
+              <button class="btn" style="padding:6px 12px;font-size:13px"
+                onclick="Dashboard._confirmarPgto([${v.idsPago.map(id => `'${id}'`).join(",")}])">
+                Confirm</button>` : ""}
           </div>`).join("")}
       </div>`;
+  },
+
+  async _confirmarPgto(ids) {
+    const { error } = await sb.from("pedidos")
+      .update({ status_pagamento: "confirmado" }).in("id", ids);
+    if (error) { alert("Error: " + error.message); return; }
+    this._carregar();
   },
 
   /* ===== Top 5 marmitas + Top 5 clientes (EVER) ===== */
