@@ -132,10 +132,9 @@ const Dashboard = {
                       padding:8px 0;border-bottom:1px solid var(--borda);gap:8px">
             <span style="flex:1">${this._esc(n)}</span>
             <strong>$${v.total.toFixed(0)}</strong>
-            ${v.idsPago.length ? `
-              <button class="btn" style="padding:6px 12px;font-size:13px"
-                onclick="Dashboard._confirmarPgto([${v.idsPago.map(id => `'${id}'`).join(",")}])">
-                Confirm</button>` : ""}
+            <button class="btn" style="padding:6px 12px;font-size:13px"
+              onclick="Dashboard._confirmarPgto([${[...v.idsPago, ...v.idsPendente].map(id => `'${id}'`).join(",")}])">
+              Confirm</button>
           </div>`).join("")}
       </div>`;
   },

@@ -18,6 +18,19 @@ const Dashboard = {
 
     await Promise.all([this._menuHoje(), this._menuAmanha()]);
     await this._meusPedidos();
+    this._subscreverPedidos();
+  },
+
+  _subscreverPedidos() {
+    if (this._canal) sb.removeChannel(this._canal);
+    const cliente = Auth._cliente;
+    if (!cliente) return;
+    this._canal = sb.channel("pedidos-cliente-" + cliente.id)
+      .on("postgres_changes", {
+        event: "UPDATE", schema: "public", table: "pedidos",
+        filter: `cliente_id=eq.${cliente.id}`
+      }, () => this._meusPedidos())
+      .subscribe();
   },
 
   /* --- card da marmita de hoje --- */
