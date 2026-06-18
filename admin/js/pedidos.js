@@ -312,6 +312,8 @@ const Pedidos = {
             <div style="margin-top:4px">${this._statusLabel(p)} ${metodo ?
               `<span style="font-size:12px;color:var(--texto-suave)">${metodo}</span>` : ""}</div>
           </div>
+          <button class="btn-icone excluir" title="Cancel order"
+            onclick="Pedidos._cancelar('${p.id}')">✕</button>
         </div>
         ${atrasadoPendente ? `
           <div style="background:rgba(163,59,59,.08);padding:8px;border-radius:8px;margin-top:8px;
@@ -369,6 +371,13 @@ const Pedidos = {
     if (!metodo) { alert("Select a payment method."); return; }
     const { error } = await sb.from("pedidos")
       .update({ status_pagamento: "confirmado", metodo_pagamento: metodo }).eq("id", id);
+    if (error) { alert("Error: " + error.message); return; }
+    this._carregar();
+  },
+
+  async _cancelar(id) {
+    if (!confirm("Cancel this order?")) return;
+    const { error } = await sb.from("pedidos").update({ cancelado: true }).eq("id", id);
     if (error) { alert("Error: " + error.message); return; }
     this._carregar();
   },
