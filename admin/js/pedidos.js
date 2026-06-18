@@ -312,8 +312,11 @@ const Pedidos = {
             <div style="margin-top:4px">${this._statusLabel(p)} ${metodo ?
               `<span style="font-size:12px;color:var(--texto-suave)">${metodo}</span>` : ""}</div>
           </div>
-          <button class="btn-icone excluir" title="Cancel order"
-            onclick="Pedidos._cancelar('${p.id}')">✕</button>
+          <button title="Cancel order" onclick="Pedidos._cancelar('${p.id}')"
+            style="width:32px;height:32px;border-radius:50%;border:none;cursor:pointer;
+                   background:rgba(163,59,59,.1);color:var(--erro);font-size:16px;
+                   display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            🗑️</button>
         </div>
         ${atrasadoPendente ? `
           <div style="background:rgba(163,59,59,.08);padding:8px;border-radius:8px;margin-top:8px;
