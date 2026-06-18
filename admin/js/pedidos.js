@@ -313,9 +313,9 @@ const Pedidos = {
               `<span style="font-size:12px;color:var(--texto-suave)">${metodo}</span>` : ""}</div>
           </div>
           <button title="Cancel order" onclick="Pedidos._cancelar('${p.id}')"
-            style="width:30px;height:30px;border-radius:50%;cursor:pointer;flex-shrink:0;
-                   border:2px solid var(--erro);background:#fff;color:var(--erro);
-                   font-size:14px;font-weight:700;
+            style="width:28px;height:28px;border-radius:50%;cursor:pointer;flex-shrink:0;
+                   border:none;background:var(--erro);color:#fff;
+                   font-size:13px;font-weight:900;line-height:1;
                    display:flex;align-items:center;justify-content:center">
             ✕</button>
         </div>
