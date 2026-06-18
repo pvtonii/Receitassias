@@ -313,10 +313,11 @@ const Pedidos = {
               `<span style="font-size:12px;color:var(--texto-suave)">${metodo}</span>` : ""}</div>
           </div>
           <button title="Cancel order" onclick="Pedidos._cancelar('${p.id}')"
-            style="width:32px;height:32px;border-radius:50%;border:none;cursor:pointer;
-                   background:rgba(163,59,59,.1);color:var(--erro);font-size:16px;
-                   display:flex;align-items:center;justify-content:center;flex-shrink:0">
-            🗑️</button>
+            style="width:30px;height:30px;border-radius:50%;cursor:pointer;flex-shrink:0;
+                   border:2px solid var(--erro);background:#fff;color:var(--erro);
+                   font-size:14px;font-weight:700;
+                   display:flex;align-items:center;justify-content:center">
+            ✕</button>
         </div>
         ${atrasadoPendente ? `
           <div style="background:rgba(163,59,59,.08);padding:8px;border-radius:8px;margin-top:8px;
