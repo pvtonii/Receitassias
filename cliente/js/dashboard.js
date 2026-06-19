@@ -36,6 +36,8 @@ const Dashboard = {
   /* --- card da marmita de hoje --- */
   async _menuHoje() {
     const el = document.getElementById("card-hoje");
+    const agora = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Chicago" }));
+    if (agora.getHours() >= 19) { el.innerHTML = ""; return; }
     const hojeIso = this._localIso(0);
 
     const { data, error } = await sb.from("menu_itens")
