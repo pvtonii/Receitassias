@@ -38,7 +38,11 @@ const Pedidos = {
       sb.from("menus").select("*").order("semana_inicio", { ascending: false })
     ]);
     const clientes = cliRes.data || [];
-    const menus    = menusRes.data || [];
+    const hoje = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Chicago" }));
+    const hojeIso = hoje.toISOString().slice(0, 10);
+    const limite = new Date(hoje); limite.setDate(limite.getDate() + 14);
+    const limiteIso = limite.toISOString().slice(0, 10);
+    const menus = (menusRes.data || []).filter(m => m.semana_fim >= hojeIso && m.semana_inicio <= limiteIso);
     this._fClientes = clientes;
     this._fMenus    = menus;
     this._fQty      = 1;
