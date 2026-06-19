@@ -154,8 +154,9 @@ const Pedidos = {
     const diaEl      = document.getElementById("f-dia");
     const opt        = diaEl.options[diaEl.selectedIndex];
     const itemId     = diaEl.value;
-    const status     = document.getElementById("f-status").value;
-    const metodo     = status === "pago" ? document.getElementById("f-metodo").value : null;
+    const statusRaw  = document.getElementById("f-status").value;
+    const status     = statusRaw === "pago" ? "confirmado" : statusRaw;
+    const metodo     = statusRaw === "pago" ? document.getElementById("f-metodo").value : null;
     const qty        = this._fQty || 1;
 
     if (!cliVal) { err.textContent = "Select a customer."; return; }
