@@ -296,13 +296,13 @@ const Dashboard = {
     return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
   },
   _amanhaCentralIso() {
-    const s = new Date().toLocaleString("en-US", { timeZone: "America/Chicago" });
+    const s = new Date().toLocaleString("en-US", { timeZone: "America/New_York" });
     const d = new Date(s);
     d.setDate(d.getDate() + 1);
     return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
   },
   _hojeCentralIso() {
-    const s = new Date().toLocaleString("en-US", { timeZone: "America/Chicago" });
+    const s = new Date().toLocaleString("en-US", { timeZone: "America/New_York" });
     const d = new Date(s);
     return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
   },

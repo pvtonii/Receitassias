@@ -38,7 +38,7 @@ const Pedidos = {
       sb.from("menus").select("*").order("semana_inicio", { ascending: false })
     ]);
     const clientes = cliRes.data || [];
-    const hoje = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Chicago" }));
+    const hoje = new Date(new Date().toLocaleString("en-US", { timeZone: "America/New_York" }));
     const hojeIso = hoje.toISOString().slice(0, 10);
     const limite = new Date(hoje); limite.setDate(limite.getDate() + 14);
     const limiteIso = limite.toISOString().slice(0, 10);
@@ -418,7 +418,7 @@ const Pedidos = {
       ? p.pedido_itens[0].menu_itens.nome : "Meal";
   },
   _amanhaIso() {
-    const s = new Date().toLocaleString("en-US", { timeZone: "America/Chicago" });
+    const s = new Date().toLocaleString("en-US", { timeZone: "America/New_York" });
     const d = new Date(s); d.setDate(d.getDate() + 1);
     return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
   },

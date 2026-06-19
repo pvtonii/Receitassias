@@ -734,7 +734,7 @@ const Pedido = {
 
   // "agora" no fuso Central (Alabama), como objeto Date comparavel
   _agoraCentral() {
-    const s = new Date().toLocaleString("en-US", { timeZone: "America/Chicago" });
+    const s = new Date().toLocaleString("en-US", { timeZone: "America/New_York" });
     return new Date(s);
   },
   _hojeCentralIso() {

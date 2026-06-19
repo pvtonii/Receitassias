@@ -271,7 +271,7 @@ const Dashboard = {
     return `${ini.getFullYear()}`;
   },
   _hojeCentral() {
-    const s = new Date().toLocaleString("en-US", { timeZone: "America/Chicago" });
+    const s = new Date().toLocaleString("en-US", { timeZone: "America/New_York" });
     return new Date(s);
   },
   _iso(d) {

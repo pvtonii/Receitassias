@@ -112,7 +112,7 @@ const MeusPedidos = {
     const limite = new Date(p.dia_consumo + "T00:00:00");
     limite.setDate(limite.getDate() - 1);
     limite.setHours(19, 0, 0, 0);
-    const agora = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Chicago" }));
+    const agora = new Date(new Date().toLocaleString("en-US", { timeZone: "America/New_York" }));
     return agora < limite;
   },
 
