@@ -405,10 +405,7 @@ const Menu = {
       const proxSegunda = new Date(hoje);
       proxSegunda.setDate(hoje.getDate() + diff);
 
-      const overlay = document.createElement("div");
-      overlay.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;" +
-        "display:flex;align-items:flex-end;justify-content:center";
-
+      const overlay = Modal.open();
       overlay.innerHTML = `
         <div style="background:#fff;width:100%;max-width:720px;border-radius:16px 16px 0 0;
                     padding:24px 24px calc(24px + env(safe-area-inset-bottom))">
@@ -430,8 +427,6 @@ const Menu = {
           </div>
         </div>`;
 
-      document.body.appendChild(overlay);
-
       const input  = overlay.querySelector("#seletor-data");
       const preview = overlay.querySelector("#seletor-preview");
 
@@ -445,7 +440,7 @@ const Menu = {
       input.addEventListener("input", atualizar);
       atualizar();
 
-      const fechar = val => { document.body.removeChild(overlay); resolve(val); };
+      const fechar = val => { Modal.close(); resolve(val); };
 
       overlay.querySelector("#seletor-cancel").addEventListener("click", () => fechar(null));
       overlay.querySelector("#seletor-ok").addEventListener("click", () => {

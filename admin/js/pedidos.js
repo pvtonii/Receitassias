@@ -30,6 +30,8 @@ const Pedidos = {
   },
 
   async _novoForm() {
+    this._scrollAntes = window.scrollY;
+    document.documentElement.style.overflow = "hidden";
     const container = document.getElementById("app");
     container.innerHTML = `<p style="color:var(--texto-suave)">Loading...</p>`;
 
@@ -48,8 +50,10 @@ const Pedidos = {
     this._fQty      = 1;
 
     container.innerHTML = `
-      <button class="btn-voltar"
-              onclick="Pedidos.render(document.getElementById('app'))">← Back</button>
+      <button class="btn-voltar" onclick="
+        document.documentElement.style.overflow = '';
+        window.scrollTo(0, Pedidos._scrollAntes || 0);
+        Pedidos.render(document.getElementById('app'))">← Back</button>
       <h2 style="margin-bottom:16px">New order</h2>
 
       <label>Customer</label>
@@ -180,6 +184,8 @@ const Pedidos = {
     if (error) { btn.disabled = false; err.textContent = "Error: " + error.message; return; }
 
     await sb.from("pedido_itens").insert({ pedido_id: ped.id, menu_item_id: itemId, preco: unit });
+    document.documentElement.style.overflow = "";
+    window.scrollTo(0, this._scrollAntes || 0);
     this.render(document.getElementById("app"));
   },
 
