@@ -300,6 +300,7 @@ const Pedidos = {
 
     if (!lista.length) { el.innerHTML = this._aviso("No orders for this filter."); return; }
 
+    lista.sort((a, b) => a.dia_consumo.localeCompare(b.dia_consumo));
     el.innerHTML = lista.map(p => this._cardPedido(p)).join("");
   },
 
