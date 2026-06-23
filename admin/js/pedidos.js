@@ -37,7 +37,7 @@ const Pedidos = {
 
     const [cliRes, menusRes] = await Promise.all([
       sb.from("clientes").select("id, nome, telefone").eq("is_admin", false).order("nome"),
-      sb.from("menus").select("*").order("semana_inicio", { ascending: false })
+      sb.from("menus").select("*").order("semana_inicio", { ascending: true })
     ]);
     const clientes = cliRes.data || [];
     const hoje = new Date(new Date().toLocaleString("en-US", { timeZone: "America/New_York" }));
