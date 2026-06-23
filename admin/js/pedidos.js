@@ -9,7 +9,7 @@
 const Pedidos = {
 
   _todos: [],
-  _filtroDia: "",       // "" = todos os dias | ISO de um dia
+  _filtroSemana: "",    // ISO da segunda-feira da semana selecionada
   _filtroStatus: "all", // all | pendente | pago | confirmado
 
   async render(container) {
@@ -201,12 +201,12 @@ const Pedidos = {
     }
     this._todos = data || [];
 
-    // por padrao, o filtro de dia comeca em "amanha" se houver pedidos pra amanha
-    if (!this._filtroDia) {
-      const amanha = this._amanhaIso();
-      if (this._todos.some(p => p.dia_consumo === amanha && !p.cancelado)) {
-        this._filtroDia = amanha;
-      }
+    // por padrao, seleciona a semana mais recente com pedidos
+    if (!this._filtroSemana) {
+      const semanas = [...new Set(
+        this._todos.filter(p => !p.cancelado).map(p => this._segundaDaSemana(p.dia_consumo))
+      )].sort().reverse();
+      if (semanas.length) this._filtroSemana = semanas[0];
     }
 
     this._desenharProducao();
@@ -214,61 +214,72 @@ const Pedidos = {
     this._desenharLista();
   },
 
-  /* ===== PRODUCAO: quantas de cada marmita no dia escolhido ===== */
+  /* ===== PRODUCAO: resumo da semana por dia ===== */
   _desenharProducao() {
     const el = document.getElementById("ord-prod");
-    const dia = this._filtroDia || this._amanhaIso();
-    const doDia = this._todos.filter(p => p.dia_consumo === dia && !p.cancelado);
+    const seg = this._filtroSemana;
+    if (!seg) { el.innerHTML = ""; return; }
 
-    if (!doDia.length) {
+    const fimIso = this._fimSemana(seg);
+    const daSemana = this._todos.filter(p =>
+      p.dia_consumo >= seg && p.dia_consumo <= fimIso && !p.cancelado);
+
+    if (!daSemana.length) {
       el.innerHTML = `
         <div class="card" style="border:2px solid var(--primaria)">
-          <div style="font-weight:700;margin-bottom:4px">🍳 Cooking for ${this._fmtData(dia)}</div>
-          <div style="color:var(--texto-suave);font-size:14px">No orders for this day.</div>
+          <div style="font-weight:700;margin-bottom:4px">🍳 ${this._fmtIntervalo(seg, fimIso)}</div>
+          <div style="color:var(--texto-suave);font-size:14px">No orders this week.</div>
         </div>`;
       return;
     }
 
-    // conta por nome de marmita (total e quantos pagos), respeitando quantidade
-    const cont = {};
-    for (const p of doDia) {
+    // agrupa por dia, depois por marmita
+    const porDia = {};
+    for (const p of daSemana) {
       const nome = this._nomeMarmita(p);
-      const qty = p.quantidade || 1;
-      const pago = (p.status_pagamento === "pago" || p.status_pagamento === "confirmado");
-      if (!cont[nome]) cont[nome] = { total: 0, pagos: 0 };
-      cont[nome].total += qty;
-      if (pago) cont[nome].pagos += qty;
+      const qty  = p.quantidade || 1;
+      const pago = p.status_pagamento === "pago" || p.status_pagamento === "confirmado";
+      if (!porDia[p.dia_consumo]) porDia[p.dia_consumo] = {};
+      if (!porDia[p.dia_consumo][nome]) porDia[p.dia_consumo][nome] = { total: 0, pagos: 0 };
+      porDia[p.dia_consumo][nome].total += qty;
+      if (pago) porDia[p.dia_consumo][nome].pagos += qty;
     }
-    const totalGeral = doDia.reduce((s, p) => s + (p.quantidade || 1), 0);
+    const totalGeral = daSemana.reduce((s, p) => s + (p.quantidade || 1), 0);
 
     el.innerHTML = `
       <div class="card" style="border:2px solid var(--primaria)">
-        <div style="font-weight:700;margin-bottom:8px">🍳 Cooking for ${this._fmtData(dia)}</div>
-        ${Object.keys(cont).map(nome => `
-          <div style="display:flex;justify-content:space-between;padding:6px 0;
-                      border-bottom:1px solid var(--borda)">
-            <span style="font-weight:600">${this._esc(nome)}</span>
-            <span><strong>${cont[nome].total}</strong>
-              <span style="font-size:12px;color:var(--texto-suave)">
-                (${cont[nome].pagos} paid)</span></span>
+        <div style="font-weight:700;margin-bottom:10px">🍳 ${this._fmtIntervalo(seg, fimIso)}</div>
+        ${Object.keys(porDia).sort().map(dia => `
+          <div style="margin-bottom:10px">
+            <div style="font-size:12px;font-weight:700;text-transform:uppercase;
+                        color:var(--primaria);margin-bottom:4px">${this._fmtData(dia)}</div>
+            ${Object.keys(porDia[dia]).map(nome => `
+              <div style="display:flex;justify-content:space-between;padding:4px 0;
+                          border-bottom:1px solid var(--borda)">
+                <span>${this._esc(nome)}</span>
+                <span><strong>${porDia[dia][nome].total}</strong>
+                  <span style="font-size:12px;color:var(--texto-suave)">
+                    (${porDia[dia][nome].pagos} paid)</span></span>
+              </div>`).join("")}
           </div>`).join("")}
-        <div style="margin-top:8px;font-weight:700;text-align:right">
-          Total: ${totalGeral} meal(s)</div>
+        <div style="font-weight:700;text-align:right">Total: ${totalGeral} meal(s)</div>
       </div>`;
   },
 
   /* ===== FILTROS ===== */
   _desenharFiltros() {
     const el = document.getElementById("ord-filtros");
-    // dias disponiveis (unicos, nao cancelados)
-    const dias = [...new Set(this._todos.filter(p => !p.cancelado).map(p => p.dia_consumo))].sort();
+    // semanas disponíveis (mais nova primeiro)
+    const semanas = [...new Set(
+      this._todos.filter(p => !p.cancelado).map(p => this._segundaDaSemana(p.dia_consumo))
+    )].sort().reverse();
 
     el.innerHTML = `
       <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <select class="campo" id="f-dia" style="flex:1;margin:0">
-          <option value="">All days</option>
-          ${dias.map(d => `<option value="${d}" ${d === this._filtroDia ? "selected" : ""}>
-            ${this._fmtData(d)}</option>`).join("")}
+        <select class="campo" id="f-semana-filtro" style="flex:1;margin:0">
+          ${semanas.map(seg => `
+            <option value="${seg}" ${seg === this._filtroSemana ? "selected" : ""}>
+              ${this._fmtIntervalo(seg, this._fimSemana(seg))}</option>`).join("")}
         </select>
         <select class="campo" id="f-status" style="flex:1;margin:0">
           <option value="all" ${this._filtroStatus==="all"?"selected":""}>All status</option>
@@ -278,8 +289,8 @@ const Pedidos = {
         </select>
       </div>`;
 
-    document.getElementById("f-dia").addEventListener("change", e => {
-      this._filtroDia = e.target.value;
+    document.getElementById("f-semana-filtro").addEventListener("change", e => {
+      this._filtroSemana = e.target.value;
       this._desenharProducao();
       this._desenharLista();
     });
@@ -289,19 +300,37 @@ const Pedidos = {
     });
   },
 
-  /* ===== LISTA POR CLIENTE/PEDIDO ===== */
+  /* ===== LISTA POR DIA > CLIENTE (alfabetico) ===== */
   _desenharLista() {
     const el = document.getElementById("ord-lista");
+    const seg = this._filtroSemana;
     let lista = this._todos.filter(p => !p.cancelado);
 
-    if (this._filtroDia) lista = lista.filter(p => p.dia_consumo === this._filtroDia);
+    if (seg) {
+      const fimIso = this._fimSemana(seg);
+      lista = lista.filter(p => p.dia_consumo >= seg && p.dia_consumo <= fimIso);
+    }
     if (this._filtroStatus !== "all")
       lista = lista.filter(p => p.status_pagamento === this._filtroStatus);
 
     if (!lista.length) { el.innerHTML = this._aviso("No orders for this filter."); return; }
 
-    lista.sort((a, b) => a.dia_consumo.localeCompare(b.dia_consumo));
-    el.innerHTML = lista.map(p => this._cardPedido(p)).join("");
+    // agrupa por dia, dentro de cada dia ordena por nome
+    const porDia = {};
+    for (const p of lista) {
+      (porDia[p.dia_consumo] = porDia[p.dia_consumo] || []).push(p);
+    }
+    Object.values(porDia).forEach(arr => arr.sort((a, b) => {
+      const nA = a.clientes ? a.clientes.nome : (a.nome_avulso || "Walk-in");
+      const nB = b.clientes ? b.clientes.nome : (b.nome_avulso || "Walk-in");
+      return nA.localeCompare(nB);
+    }));
+
+    el.innerHTML = Object.keys(porDia).sort().map(dia => `
+      <div style="font-size:12px;font-weight:700;text-transform:uppercase;
+                  color:var(--texto-suave);margin:16px 0 8px">${this._fmtData(dia)}</div>
+      ${porDia[dia].map(p => this._cardPedido(p)).join("")}
+    `).join("");
   },
 
   _cardPedido(p) {
@@ -408,6 +437,17 @@ const Pedidos = {
   },
 
   /* ===== helpers ===== */
+  _segundaDaSemana(iso) {
+    const d = new Date(iso + "T00:00:00");
+    const diff = d.getDay() === 0 ? -6 : 1 - d.getDay();
+    d.setDate(d.getDate() + diff);
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+  },
+  _fimSemana(seg) {
+    const d = new Date(seg + "T00:00:00");
+    d.setDate(d.getDate() + 4);
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+  },
   _fmtIntervalo(ini, fim) {
     const a = new Date(ini + "T00:00:00"), b = new Date(fim + "T00:00:00");
     const m = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
