@@ -6,7 +6,7 @@
    suba o numero abaixo. Os dois footers leem daqui.
 ============================================ */
 
-const APP_VERSION = "1.27.8";
+const APP_VERSION = "1.27.9";
 const APP_DATA    = "2026-06-09";
 
 /* ============================================
@@ -38,6 +38,9 @@ const REGRAS = {
   DIAS_SEMANA: 5,
   PUSHOVER_TOKEN: "ajs5g4qq3qccrm1kj8mfd77ziavk6u",
   PUSHOVER_USER:  "g8f2gvhka7zzxzp3ui6kib238e32zv",
+  EMAILJS_SERVICE:  "YOUR_SERVICE_ID",
+  EMAILJS_TEMPLATE: "YOUR_TEMPLATE_ID",
+  EMAILJS_KEY:      "YOUR_PUBLIC_KEY",
   PAGAMENTO: {
     cashapp:        "$TassiaOliveira1",      // exibido pro cliente
     cashapp_tag:    "TassiaOliveira1",        // usado no link cash.app/$tag/valor

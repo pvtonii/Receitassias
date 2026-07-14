@@ -623,6 +623,19 @@ const Pedido = {
         })
       });
     } catch(e) {}
+    this._emailNotif(title, message);
+  },
+
+  _emailNotif(title, message) {
+    try {
+      if (!REGRAS.EMAILJS_KEY || REGRAS.EMAILJS_KEY === "YOUR_PUBLIC_KEY") return;
+      emailjs.send(
+        REGRAS.EMAILJS_SERVICE,
+        REGRAS.EMAILJS_TEMPLATE,
+        { title, message },
+        REGRAS.EMAILJS_KEY
+      );
+    } catch(e) {}
   },
 
   _linhaPag(nome, valor, subtexto, ultimo = false) {
