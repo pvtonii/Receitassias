@@ -259,12 +259,34 @@ const Pedido = {
 
   _desenhar() {
     const el = document.getElementById("ord-conteudo");
+    const pend = this._pendentes || [];
+
+    // bloqueia selecao se houver pendencias
+    if (pend.length) {
+      const total = pend.reduce((s, p) => s + Number(p.total), 0);
+      const totalMeals = pend.reduce((s, p) => s + (p.quantidade || 1), 0);
+      const ids = pend.map(p => p.id).join(",");
+      el.innerHTML = `
+        <div class="card" style="border:2px solid var(--erro);
+             background:rgba(217,48,37,.06);margin-bottom:14px">
+          <div style="font-weight:700;color:var(--erro);font-size:15px;margin-bottom:6px">
+            🔒 New orders blocked</div>
+          <div style="font-size:14px;margin-bottom:4px">
+            You have <strong>${totalMeals} unpaid meal(s)</strong> totaling <strong>$${total.toFixed(0)}</strong>.</div>
+          <div style="font-size:13px;color:var(--texto-suave);margin-bottom:14px">
+            Please pay your balance before placing new orders.</div>
+          <button class="btn" style="width:100%;padding:12px;background:var(--erro)"
+            onclick="Pedido._pagarVarios('${ids}'.split(','), ${total})">
+            Pay $${total.toFixed(0)} now</button>
+        </div>`;
+      return;
+    }
+
     const m = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
     const { semanaCheia } = this._calcular();
     this._semanaCheia = semanaCheia;
 
     el.innerHTML = `
-      ${this._bannerPendentes()}
       <div style="font-weight:600;margin-bottom:12px">
         ${this._intervalo(this._semana.semana_inicio, this._semana.semana_fim)}</div>
       ${this._dias.map(d => this._cardDia(d, m, semanaCheia)).join("")}
@@ -272,29 +294,6 @@ const Pedido = {
            border:2px solid var(--primaria)"></div>`;
 
     this._atualizarResumo();
-  },
-
-  /* Aviso (nao bloqueia) de marmitas que o cliente ainda nao marcou como pago */
-  _bannerPendentes() {
-    const pend = this._pendentes || [];
-    if (!pend.length) return "";
-    const total = pend.reduce((s, p) => s + Number(p.total), 0);
-    const totalMeals = pend.reduce((s, p) => s + (p.quantidade || 1), 0);
-    const ids = pend.map(p => p.id).join(",");
-    return `
-      <div class="card" style="border:2px solid var(--erro);
-           background:rgba(217,48,37,.06);margin-bottom:14px">
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
-          <div style="flex:1;min-width:0">
-            <div style="font-weight:700;color:var(--erro);font-size:14px">
-              ⚠️ ${totalMeals} unpaid meal(s) — $${total.toFixed(0)}</div>
-            <div style="font-size:12px;color:var(--texto-suave);margin-top:2px">
-              Please settle before they pile up.</div>
-          </div>
-          <button class="btn" style="padding:9px 14px;background:var(--erro);font-size:13px"
-            onclick="Pedido._pagarVarios('${ids}'.split(','), ${total})">Pay now</button>
-        </div>
-      </div>`;
   },
 
   _cardDia(d, m, semanaCheia) {
