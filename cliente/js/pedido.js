@@ -427,8 +427,11 @@ const Pedido = {
 
   _calcular() {
     const escolhidos = this._dias.filter(d => (this._qtd.get(d.dia) || 0) > 0);
-    const semanaCheia = this._dias.length > 0
-      && this._dias.every(d => (this._qtd.get(d.dia) || 0) > 0);
+    // DESCONTO SEMANA CHEIA DESATIVADO
+    // para reativar: apaga a linha abaixo e descomenta as 2 seguintes
+    const semanaCheia = false;
+    // const semanaCheia = this._dias.length > 0
+    //   && this._dias.every(d => (this._qtd.get(d.dia) || 0) > 0);
 
     let totalOriginal = 0;
     for (const d of escolhidos) {
