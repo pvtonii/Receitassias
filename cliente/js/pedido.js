@@ -261,8 +261,8 @@ const Pedido = {
     const el = document.getElementById("ord-conteudo");
     const pend = this._pendentes || [];
 
-    // bloqueia selecao se houver pendencias
-    if (pend.length) {
+    // bloqueia selecao se houver pendencias (exceto clientes com permite_pendencias)
+    if (pend.length && !Auth._cliente?.permite_pendencias) {
       const total = pend.reduce((s, p) => s + Number(p.total), 0);
       const totalMeals = pend.reduce((s, p) => s + (p.quantidade || 1), 0);
       const ids = pend.map(p => p.id).join(",");

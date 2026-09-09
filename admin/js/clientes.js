@@ -115,6 +115,15 @@ const Clientes = {
             <div style="font-weight:700;font-size:13px">${c.ultima_compra ? this._fmtData(c.ultima_compra) : "—"}</div>
           </div>
         </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;
+                    margin-top:10px;padding-top:10px;border-top:1px solid var(--borda)">
+          <span style="font-size:13px;color:var(--texto-suave)">Allow orders with pending balance</span>
+          <button onclick="Clientes._togglePendencias('${c.id}', ${!c.permite_pendencias})"
+            style="padding:4px 12px;border-radius:20px;border:none;cursor:pointer;font-size:12px;font-weight:600;
+                   background:${c.permite_pendencias ? 'var(--sucesso)' : 'var(--borda)'};
+                   color:${c.permite_pendencias ? '#fff' : 'var(--texto-suave)'}">
+            ${c.permite_pendencias ? 'ON' : 'OFF'}</button>
+        </div>
       </div>`;
   },
 
@@ -174,6 +183,12 @@ const Clientes = {
       return;
     }
     this.render(document.getElementById("app"));
+  },
+
+  async _togglePendencias(id, valor) {
+    const { error } = await sb.from("clientes").update({ permite_pendencias: valor }).eq("id", id);
+    if (error) { alert("Error: " + error.message); return; }
+    await this._carregar();
   },
 
   /* helpers */
