@@ -175,8 +175,9 @@ const Dashboard = {
         const label = this._intervalo(ch, fim);
         const totalSem = ps.filter(p => !p.cancelado).reduce((s, p) => s + Number(p.total), 0);
         const qtdSem   = ps.filter(p => !p.cancelado).reduce((s, p) => s + (p.quantidade || 1), 0);
+        const semAberta = fim >= hojeIso;
         html += `
-          <details${i === 0 ? " open" : ""} style="margin-bottom:8px">
+          <details${semAberta ? " open" : ""} style="margin-bottom:8px">
             <summary style="list-style:none;cursor:pointer;display:flex;
                             align-items:center;justify-content:space-between;
                             padding:10px 14px;background:var(--card);

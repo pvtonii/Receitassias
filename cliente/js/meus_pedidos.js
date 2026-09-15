@@ -53,7 +53,7 @@ const MeusPedidos = {
       const totalSem = ps.reduce((s, p) => s + Number(p.total), 0);
       const qtdSem   = ps.reduce((s, p) => s + (p.quantidade || 1), 0);
       html += `
-        <details${i === 0 ? " open" : ""} style="margin-bottom:8px">
+        <details${(isThisWeek || isFuture) ? " open" : ""} style="margin-bottom:8px">
           <summary style="list-style:none;cursor:pointer;display:flex;
                           align-items:center;justify-content:space-between;
                           padding:10px 14px;background:var(--card);
